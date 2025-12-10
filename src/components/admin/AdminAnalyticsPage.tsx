@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { adminService } from "@/services/adminService";
 import {
   BarChart,
   Bar,
@@ -28,78 +30,72 @@ import { Badge } from "../ui/badge";
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export function AdminAnalyticsPage() {
-  // Mock data for charts
-  const userGrowthData = [
-    { month: "Jan", users: 2000 },
-    { month: "Feb", users: 3200 },
-    { month: "Mar", users: 4500 },
-    { month: "Apr", users: 5800 },
-    { month: "May", users: 7200 },
-    { month: "Jun", users: 8900 },
-    { month: "Jul", users: 10500 },
-    { month: "Aug", users: 12458 },
-  ];
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const documentStatusData = [
-    { name: "Verified", value: 8456, color: "#00C49F" },
-    { name: "Pending", value: 342, color: "#FFBB28" },
-    { name: "Rejected", value: 189, color: "#FF8042" },
-  ];
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const response = await adminService.getAnalytics();
+        if (response.data && response.data.data) {
+          setData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch analytics", error);
+        // toast.error("Failed to fetch analytics"); // Optional: don't spam if metrics fail
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
 
-  const scholarshipApplicationsData = [
-    { scholarship: "Fulbright", applications: 234 },
-    { scholarship: "DAAD", applications: 189 },
-    { scholarship: "Chevening", applications: 156 },
-    { scholarship: "Australia Awards", applications: 98 },
-    { scholarship: "Others", applications: 234 },
-  ];
+  if (isLoading) {
+    return <div className="flex h-96 items-center justify-center">Loading analytics...</div>;
+  }
 
-  const engagementData = [
-    { day: "Mon", posts: 45, likes: 234, comments: 123 },
-    { day: "Tue", posts: 52, likes: 289, comments: 145 },
-    { day: "Wed", posts: 38, likes: 198, comments: 98 },
-    { day: "Thu", posts: 61, likes: 312, comments: 167 },
-    { day: "Fri", posts: 49, likes: 278, comments: 134 },
-    { day: "Sat", posts: 35, likes: 156, comments: 87 },
-    { day: "Sun", posts: 42, likes: 201, comments: 112 },
-  ];
-
-  const topCountries = [
-    { country: "Nepal", users: 8456, percentage: 68 },
-    { country: "India", users: 2341, percentage: 19 },
-    { country: "Bangladesh", users: 987, percentage: 8 },
-    { country: "Others", users: 674, percentage: 5 },
-  ];
+  // Fallback/Default data if backend response is missing sections
+  const safeData = {
+    userGrowth: data?.userGrowth || [],
+    documentStatus: data?.documentStatus?.map((d: any) => ({
+      name: d.status || d.name,
+      value: d.count || d.value,
+      color: d.status === 'Verified' ? '#00C49F' : d.status === 'Pending' ? '#FFBB28' : '#FF8042'
+    })) || [],
+    scholarshipApplications: data?.scholarshipApplications || [],
+    engagement: data?.engagement || [],
+    usersByCountry: data?.usersByCountry || []
+  };
 
   const stats = [
     {
       label: "Total Users",
-      value: "12,458",
-      change: "+12.5%",
+      value: data?.totalUsers?.toLocaleString() || "0",
+      change: "+0%", // Backend might not provide this
       trend: "up",
       icon: Users,
       color: "blue",
     },
     {
       label: "Active Scholarships",
-      value: "1,247",
-      change: "+5.2%",
+      value: data?.activeScholarships?.toLocaleString() || "0",
+      change: "+0%",
       trend: "up",
       icon: GraduationCap,
       color: "green",
     },
     {
       label: "Documents Verified",
-      value: "8,456",
-      change: "+8.1%",
+      value: data?.documentsVerified?.toLocaleString() || "0",
+      change: "+0%",
       trend: "up",
       icon: FileCheck,
       color: "purple",
     },
     {
       label: "Community Posts",
-      value: "3,421",
-      change: "+15.3%",
+      value: data?.communityPosts?.toLocaleString() || "0",
+      change: "+0%",
       trend: "up",
       icon: MessageSquare,
       color: "orange",
@@ -124,6 +120,7 @@ export function AdminAnalyticsPage() {
                 >
                   <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
                 </div>
+                {/* 
                 <Badge
                   variant={stat.trend === "up" ? "default" : "destructive"}
                   className="flex items-center gap-1"
@@ -135,6 +132,7 @@ export function AdminAnalyticsPage() {
                   )}
                   {stat.change}
                 </Badge>
+                */}
               </div>
               <h3 className="text-2xl font-bold mb-1">{stat.value}</h3>
               <p className="text-sm text-gray-600">{stat.label}</p>
@@ -152,7 +150,7 @@ export function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={userGrowthData}>
+              <LineChart data={safeData.userGrowth}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -179,7 +177,7 @@ export function AdminAnalyticsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={documentStatusData}
+                  data={safeData.documentStatus}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -190,8 +188,8 @@ export function AdminAnalyticsPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {documentStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {safeData.documentStatus.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -207,7 +205,7 @@ export function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={scholarshipApplicationsData}>
+              <BarChart data={safeData.scholarshipApplications}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="scholarship" />
                 <YAxis />
@@ -226,7 +224,7 @@ export function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={engagementData}>
+              <BarChart data={safeData.engagement}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -248,7 +246,7 @@ export function AdminAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {topCountries.map((item) => (
+            {safeData.usersByCountry.map((item: any) => (
               <div key={item.country}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{item.country}</span>

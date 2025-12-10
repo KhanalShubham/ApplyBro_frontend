@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -20,119 +20,111 @@ import {
   Clock,
   Eye,
   Download,
-  Filter,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
+import { Loader } from "../ui/loader";
+import { Document } from "@/types/admin";
 
 export function DocumentVerificationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "verified" | "rejected">("all");
-
-  // Mock document data
-  const [documents, setDocuments] = useState([
-    {
-      id: "1",
-      userId: "1",
-      userName: "Pratik Shrestha",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pratik",
-      documentName: "+2 Transcript",
-      documentType: "Transcript",
-      uploadedDate: "2024-11-01",
-      status: "verified",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-      id: "2",
-      userId: "1",
-      userName: "Pratik Shrestha",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pratik",
-      documentName: "Bachelor Transcript",
-      documentType: "Transcript",
-      uploadedDate: "2024-11-03",
-      status: "pending",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-      id: "3",
-      userId: "2",
-      userName: "Sarah Khadka",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      documentName: "IELTS Certificate",
-      documentType: "Certificate",
-      uploadedDate: "2024-11-02",
-      status: "rejected",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rejectionReason: "Document quality is poor. Please upload a clear scan.",
-    },
-    {
-      id: "4",
-      userId: "3",
-      userName: "Rohan Sharma",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rohan",
-      documentName: "Passport Copy",
-      documentType: "Identity",
-      uploadedDate: "2024-11-04",
-      status: "pending",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-  ]);
-
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch =
-      doc.documentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.userName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === "all" || doc.status === filterStatus;
-    return matchesSearch && matchesStatus;
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 1,
   });
 
-  const handleVerify = (docId: string) => {
-    setDocuments(
-      documents.map((doc) =>
-        doc.id === docId ? { ...doc, status: "verified" } : doc
-      )
-    );
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await adminService.getDocuments(
+        pagination.page,
+        pagination.pageSize,
+        searchQuery,
+        filterStatus === "all" ? undefined : filterStatus
+      );
+      if (response.data && response.data.data) {
+        setDocuments(response.data.data.documents || []);
+        setPagination(prev => ({ ...prev, ...(response.data.data.pagination || {}) }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch documents", error);
+      toast.error("Failed to fetch documents");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (docId: string) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchDocuments();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, filterStatus]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [pagination.page, pagination.pageSize]);
+
+  const handleVerify = async (docId: string) => {
+    try {
+      await adminService.verifyDocument(docId, { status: "verified" });
+      toast.success("Document verified successfully");
+      fetchDocuments();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to verify document");
+    }
+  };
+
+  const handleReject = async (docId: string) => {
     const reason = prompt("Enter rejection reason:");
     if (reason) {
-      setDocuments(
-        documents.map((doc) =>
-          doc.id === docId
-            ? { ...doc, status: "rejected", rejectionReason: reason }
-            : doc
-        )
-      );
+      try {
+        await adminService.verifyDocument(docId, { status: "rejected", adminNote: reason });
+        toast.success("Document rejected");
+        fetchDocuments();
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to reject document");
+      }
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, page: newPage }));
     }
   };
 
   const stats = [
     {
       label: "Total Documents",
-      value: documents.length,
+      value: pagination.total,
       icon: FileCheck,
       color: "blue",
     },
-    {
-      label: "Pending Review",
-      value: documents.filter((d) => d.status === "pending").length,
-      icon: Clock,
-      color: "orange",
-    },
-    {
-      label: "Verified",
-      value: documents.filter((d) => d.status === "verified").length,
-      icon: CheckCircle,
-      color: "green",
-    },
-    {
-      label: "Rejected",
-      value: documents.filter((d) => d.status === "rejected").length,
-      icon: X,
-      color: "red",
-    },
+    // Note: These specific counts might need separate API calls or be removed if backend doesn't return them in metadata
+    // For now, I'll keep them but they might be inaccurate if only fetching one page. 
+    // Ideally backend returns specific stats. I'll rely on what I have, or maybe just show the filtered count.
+    // Given the current backend response structure, getting separate counts requires separate calls. 
+    // I will simplify or remove "Pending/Verified/Rejected" breakdown if I can't get it easily, or just leave it based on current list length (which is wrong for pagination).
+    // Better to remove or change to "Current View" counts.
   ];
+
+  if (isLoading && documents.length === 0) {
+    return <Loader className="min-h-[400px]" />;
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-[1600px] mx-auto">
@@ -141,21 +133,19 @@ export function DocumentVerificationPage() {
         <p className="text-gray-600">Review and verify user-uploaded documents</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Simplified as backend doesn't provide these counts in list response */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                  <h3 className="text-2xl font-bold">{stat.value}</h3>
-                </div>
-                <stat.icon className={`h-8 w-8 text-${stat.color}-600`} />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Documents</p>
+                <h3 className="text-2xl font-bold">{pagination.total}</h3>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <FileCheck className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -191,110 +181,148 @@ export function DocumentVerificationPage() {
       {/* Documents Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Documents ({filteredDocuments.length})</CardTitle>
+          <CardTitle>Documents List</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDocuments.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <ImageWithFallback
-                        src={doc.thumbnail}
-                        alt={doc.documentName}
-                        className="w-12 h-12 rounded object-cover"
-                      />
-                      <div>
-                        <p className="font-medium">{doc.documentName}</p>
-                        <p className="text-sm text-gray-500">ID: {doc.id}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={doc.userAvatar} />
-                        <AvatarFallback>{doc.userName[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{doc.userName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{doc.documentType}</Badge>
-                  </TableCell>
-                  <TableCell>{doc.uploadedDate}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        doc.status === "verified"
-                          ? "default"
-                          : doc.status === "rejected"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {doc.status === "pending" && (
-                        <Clock className="mr-1 h-3 w-3" />
-                      )}
-                      {doc.status === "verified" && (
-                        <CheckCircle className="mr-1 h-3 w-3" />
-                      )}
-                      {doc.status === "rejected" && (
-                        <X className="mr-1 h-3 w-3" />
-                      )}
-                      {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                    </Badge>
-                    {doc.rejectionReason && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {doc.rejectionReason}
-                      </p>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      {doc.status === "pending" && (
-                        <>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleVerify(doc.id)}
-                          >
-                            <CheckCircle className="mr-1 h-4 w-4" />
-                            Verify
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleReject(doc.id)}
-                          >
-                            <X className="mr-1 h-4 w-4" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Document</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Uploaded</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {documents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      No documents found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  documents.map((doc) => (
+                    <TableRow key={doc._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {/* Assuming doc.url is an image or we have a thumbnail. If not, use generic icon */}
+                          <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center">
+                            <FileCheck className="h-6 w-6 text-gray-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{doc.name}</p>
+                            <p className="text-sm text-gray-500">ID: {doc._id}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={doc.user?.avatar} />
+                            <AvatarFallback>{doc.user?.name?.[0] || 'U'}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{doc.user?.name || 'Unknown User'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{doc.type}</Badge>
+                      </TableCell>
+                      <TableCell>{new Date(doc.uploadedAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            doc.status === "verified"
+                              ? "default"
+                              : doc.status === "rejected"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {doc.status === "pending" && (
+                            <Clock className="mr-1 h-3 w-3" />
+                          )}
+                          {doc.status === "verified" && (
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                          )}
+                          {doc.status === "rejected" && (
+                            <X className="mr-1 h-3 w-3" />
+                          )}
+                          {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                        </Badge>
+                        {doc.rejectionReason && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {doc.rejectionReason}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {doc.url && (
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </a>
+                          )}
+
+                          {doc.status === "pending" && (
+                            <>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleVerify(doc._id)}
+                              >
+                                <CheckCircle className="mr-1 h-4 w-4" />
+                                Verify
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleReject(doc._id)}
+                              >
+                                <X className="mr-1 h-4 w-4" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="text-sm text-gray-500">
+              Page {pagination.page} of {pagination.totalPages}
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

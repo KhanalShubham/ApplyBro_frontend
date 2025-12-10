@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -22,125 +22,95 @@ import {
   ThumbsUp,
   MessageCircle,
   AlertTriangle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { adminService } from "@/services/adminService";
+import { toast } from "sonner";
+import { Loader } from "../ui/loader";
+import { Post } from "@/types/admin";
 
 export function PostModerationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved" | "rejected">("all");
-
-  // Mock post data
-  const [posts, setPosts] = useState([
-    {
-      id: "1",
-      userId: "2",
-      userName: "Sarah Khadka",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      title: "My Germany Visa Journey 🇩🇪",
-      content: "Just got my visa approved! Here's everything you need to know about the process...",
-      status: "approved",
-      createdAt: "2024-11-05",
-      likes: 24,
-      comments: 8,
-      category: "Success Story",
-    },
-    {
-      id: "2",
-      userId: "3",
-      userName: "Rohan Sharma",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rohan",
-      title: "Tips for IELTS Speaking Test",
-      content: "Scored 8.5 in speaking. Sharing my preparation strategy...",
-      status: "pending",
-      createdAt: "2024-11-06",
-      likes: 12,
-      comments: 3,
-      category: "Tips",
-    },
-    {
-      id: "3",
-      userId: "1",
-      userName: "Pratik Shrestha",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pratik",
-      title: "Scholarship Interview Experience",
-      content: "Common questions asked during scholarship interviews...",
-      status: "pending",
-      createdAt: "2024-11-06",
-      likes: 5,
-      comments: 1,
-      category: "Guidance",
-    },
-    {
-      id: "4",
-      userId: "5",
-      userName: "Maya Gurung",
-      userAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maya",
-      title: "Spam Post - Ignore",
-      content: "This is inappropriate content...",
-      status: "rejected",
-      createdAt: "2024-11-04",
-      likes: 0,
-      comments: 0,
-      category: "Other",
-      rejectionReason: "Inappropriate content",
-    },
-  ]);
-
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.userName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === "all" || post.status === filterStatus;
-    return matchesSearch && matchesStatus;
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 1,
   });
 
-  const handleApprove = (postId: string) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId ? { ...post, status: "approved" } : post
-      )
-    );
-  };
-
-  const handleReject = (postId: string) => {
-    const reason = prompt("Enter rejection reason:");
-    if (reason) {
-      setPosts(
-        posts.map((post) =>
-          post.id === postId
-            ? { ...post, status: "rejected", rejectionReason: reason }
-            : post
-        )
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await adminService.getPosts(
+        pagination.page,
+        pagination.pageSize,
+        searchQuery,
+        filterStatus === "all" ? undefined : filterStatus
       );
+      if (response.data && response.data.data) {
+        setPosts(response.data.data.posts || []);
+        setPagination(prev => ({ ...prev, ...(response.data.data.pagination || {}) }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch posts", error);
+      toast.error("Failed to fetch posts");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const stats = [
-    {
-      label: "Total Posts",
-      value: posts.length,
-      icon: MessageSquare,
-      color: "blue",
-    },
-    {
-      label: "Pending Review",
-      value: posts.filter((p) => p.status === "pending").length,
-      icon: Clock,
-      color: "orange",
-    },
-    {
-      label: "Approved",
-      value: posts.filter((p) => p.status === "approved").length,
-      icon: CheckCircle,
-      color: "green",
-    },
-    {
-      label: "Rejected",
-      value: posts.filter((p) => p.status === "rejected").length,
-      icon: X,
-      color: "red",
-    },
-  ];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPagination(prev => ({ ...prev, page: 1 }));
+      fetchPosts();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, filterStatus]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [pagination.page, pagination.pageSize]);
+
+  const handleApprove = async (postId: string) => {
+    try {
+      await adminService.moderatePost(postId, { status: "approved" });
+      toast.success("Post approved successfully");
+      fetchPosts();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to approve post");
+    }
+  };
+
+  const handleReject = async (postId: string) => {
+    const reason = prompt("Enter rejection reason:");
+    if (reason) {
+      try {
+        await adminService.moderatePost(postId, { status: "declined", adminNote: reason });
+        toast.success("Post rejected");
+        fetchPosts();
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to reject post");
+      }
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, page: newPage }));
+    }
+  };
+
+  if (isLoading && posts.length === 0) {
+    return <Loader className="min-h-[400px]" />;
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-[1600px] mx-auto">
@@ -149,21 +119,19 @@ export function PostModerationPage() {
         <p className="text-gray-600">Review and moderate community posts</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Simplified */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                  <h3 className="text-2xl font-bold">{stat.value}</h3>
-                </div>
-                <stat.icon className={`h-8 w-8 text-${stat.color}-600`} />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Posts</p>
+                <h3 className="text-2xl font-bold">{pagination.total}</h3>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <MessageSquare className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -199,118 +167,156 @@ export function PostModerationPage() {
       {/* Posts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Posts ({filteredPosts.length})</CardTitle>
+          <CardTitle>Posts List</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Post</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Engagement</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium mb-1">{post.title}</p>
-                      <p className="text-sm text-gray-500 line-clamp-2">
-                        {post.content}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={post.userAvatar} />
-                        <AvatarFallback>{post.userName[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{post.userName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{post.category}</Badge>
-                  </TableCell>
-                  <TableCell>{post.createdAt}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <ThumbsUp className="h-4 w-4" />
-                        {post.likes}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        {post.comments}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        post.status === "approved"
-                          ? "default"
-                          : post.status === "rejected"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {post.status === "pending" && (
-                        <Clock className="mr-1 h-3 w-3" />
-                      )}
-                      {post.status === "approved" && (
-                        <CheckCircle className="mr-1 h-3 w-3" />
-                      )}
-                      {post.status === "rejected" && (
-                        <X className="mr-1 h-3 w-3" />
-                      )}
-                      {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
-                    </Badge>
-                    {post.rejectionReason && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {post.rejectionReason}
-                      </p>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {post.status === "pending" && (
-                        <>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleApprove(post.id)}
-                          >
-                            <CheckCircle className="mr-1 h-4 w-4" />
-                            Approve
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleReject(post.id)}
-                          >
-                            <X className="mr-1 h-4 w-4" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      <Button variant="ghost" size="sm">
-                        <AlertTriangle className="h-4 w-4 text-orange-600" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Post</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Engagement</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {posts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      No posts found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  posts.map((post) => (
+                    <TableRow key={post._id}>
+                      <TableCell>
+                        <div className="max-w-[400px]">
+                          <p className="font-medium mb-1 truncate" title={post.title}>{post.title}</p>
+                          <p className="text-sm text-gray-500 line-clamp-2">
+                            {post.content}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={post.author?.avatar} />
+                            <AvatarFallback>{post.author?.name?.[0] || 'A'}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{post.author?.name || 'Unknown Author'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{post.category}</Badge>
+                      </TableCell>
+                      <TableCell>{new Date(post.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <ThumbsUp className="h-4 w-4" />
+                            {post.likesCount}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageCircle className="h-4 w-4" />
+                            {post.commentsCount}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            post.status === "approved"
+                              ? "default"
+                              : post.status === "rejected" // Note: backend might use 'declined' or 'rejected'. Types say 'declined' for req, but maybe 'rejected' for response status. I assumed 'rejected' in interface.
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {post.status === "pending" && (
+                            <Clock className="mr-1 h-3 w-3" />
+                          )}
+                          {post.status === "approved" && (
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                          )}
+                          {post.status === "rejected" && (
+                            <X className="mr-1 h-3 w-3" />
+                          )}
+                          {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                        </Badge>
+                        {post.rejectionReason && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {post.rejectionReason}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Assuming some way to view post details */}
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {post.status === "pending" && (
+                            <>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleApprove(post._id)}
+                              >
+                                <CheckCircle className="mr-1 h-4 w-4" />
+                                Approve
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleReject(post._id)}
+                              >
+                                <X className="mr-1 h-4 w-4" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Button variant="ghost" size="sm">
+                            <AlertTriangle className="h-4 w-4 text-orange-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="text-sm text-gray-500">
+              Page {pagination.page} of {pagination.totalPages}
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

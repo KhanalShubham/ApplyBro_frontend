@@ -13,102 +13,113 @@ import {
   ArrowRight,
   Shield,
   X,
+  Plus,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { adminService } from "@/services/adminService";
+import { AdminAction } from "@/types/admin";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 interface AdminDashboardHomeProps {
   onSectionChange: (section: string) => void;
 }
 
 export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps) {
+  const [activities, setActivities] = useState<AdminAction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await adminService.getActions(1, 10);
+        if (response.data.status === "success") {
+          setActivities(response.data.data.actions);
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin activities", error);
+        toast.error("Failed to load recent activities");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
   const stats = [
     {
-      label: "Total Users",
-      value: "12,458",
-      change: "+234",
+      label: "User Management",
+      value: "Manage",
+      change: "Users",
       icon: Users,
       color: "blue",
       onClick: () => onSectionChange("users"),
     },
     {
-      label: "Pending Documents",
-      value: "342",
-      change: "+12",
+      label: "Pending Verifications",
+      value: "Verify",
+      change: "Docs",
       icon: FileCheck,
       color: "orange",
       onClick: () => onSectionChange("documents"),
     },
     {
-      label: "Posts Pending Review",
-      value: "89",
-      change: "+5",
+      label: "Pending Posts",
+      value: "Moderate",
+      change: "Posts",
       icon: MessageSquare,
       color: "purple",
       onClick: () => onSectionChange("posts"),
     },
     {
-      label: "Active Scholarships",
-      value: "1,247",
-      change: "+24",
+      label: "Scholarships",
+      value: "Manage",
+      change: "Items",
       icon: GraduationCap,
       color: "green",
       onClick: () => onSectionChange("scholarships"),
     },
   ];
 
-  const recentActivities = [
-    {
-      type: "user",
-      title: "New user registered: Sarah Khadka",
-      time: "2 minutes ago",
-      status: "new",
-    },
-    {
-      type: "document",
-      title: "Document verified: Bachelor Transcript",
-      time: "15 minutes ago",
-      status: "verified",
-    },
-    {
-      type: "post",
-      title: "Post approved: My Germany Visa Journey",
-      time: "1 hour ago",
-      status: "approved",
-    },
-    {
-      type: "document",
-      title: "Document rejected: IELTS Certificate",
-      time: "2 hours ago",
-      status: "rejected",
-    },
-    {
-      type: "scholarship",
-      title: "New scholarship added: MIT Fellowship",
-      time: "3 hours ago",
-      status: "new",
-    },
-  ];
-
   const urgentTasks = [
     {
-      title: "Review 5 pending posts",
+      title: "Review pending posts",
       priority: "high",
-      count: 5,
+      count: "Check",
       section: "posts",
     },
     {
-      title: "Verify 12 documents",
+      title: "Verify documents",
       priority: "medium",
-      count: 12,
+      count: "Check",
       section: "documents",
     },
     {
-      title: "Update scholarship deadlines",
+      title: "Scholarship deadlines",
       priority: "medium",
-      count: 8,
+      count: "Check",
       section: "scholarships",
     },
   ];
+
+  const getActionIcon = (actionType: string) => {
+    if (actionType.includes("create")) return Plus;
+    if (actionType.includes("update") || actionType.includes("edit")) return Edit;
+    if (actionType.includes("delete")) return Trash2;
+    if (actionType.includes("verify") || actionType.includes("approve")) return CheckCircle;
+    if (actionType.includes("reject") || actionType.includes("decline")) return X;
+    return Clock;
+  };
+
+  const getActionColor = (actionType: string) => {
+    if (actionType.includes("verify") || actionType.includes("approve")) return "green";
+    if (actionType.includes("reject") || actionType.includes("decline") || actionType.includes("delete")) return "red";
+    return "blue";
+  };
 
   return (
     <div className="p-4 lg:p-8 max-w-[1800px] mx-auto">
@@ -117,7 +128,7 @@ export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps)
         <p className="text-gray-500 font-medium">Monitor and manage the ApplyBro platform</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards Navigation */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
           <motion.div
@@ -144,7 +155,7 @@ export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps)
                   </Badge>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-3xl font-bold text-gray-900 tracking-tight">{stat.value}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 tracking-tight">{stat.value}</h3>
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">{stat.label}</p>
                 </div>
               </CardContent>
@@ -162,7 +173,7 @@ export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps)
                 <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
                   <AlertCircle className="h-5 w-5 text-orange-600" />
                 </div>
-                <span>Urgent Tasks</span>
+                <span>Quick Navigation</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -178,24 +189,23 @@ export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps)
                     onClick={() => onSectionChange(task.section)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full shadow-sm ${
-                        task.priority === "high" ? "bg-red-500 animate-pulse" : "bg-orange-500"
-                      }`} />
+                      <div className={`w-3 h-3 rounded-full shadow-sm ${task.priority === "high" ? "bg-red-500 animate-pulse" : "bg-orange-500"
+                        }`} />
                       <div>
                         <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{task.title}</p>
-                        <p className="text-sm text-gray-500 font-medium">{task.count} items pending</p>
+                        <p className="text-sm text-gray-500 font-medium">Go to section</p>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       className="border-gray-200 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         onSectionChange(task.section);
                       }}
                     >
-                      Review
+                      Go
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </motion.div>
@@ -264,53 +274,49 @@ export function AdminDashboardHome({ onSectionChange }: AdminDashboardHomeProps)
 
       {/* Recent Activities */}
       <Card className="mt-8 border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-        <CardHeader className="pb-4 border-b border-gray-100">
+        <CardHeader className="pb-4 border-b border-gray-100 flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-semibold">Recent Activities</CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => window.location.reload()}>
+            Refresh
+          </Button>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-2">
-            {recentActivities.map((activity, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, type: "spring" }}
-                whileHover={{ x: 4, backgroundColor: "rgba(249, 250, 251, 0.8)" }}
-                className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 transition-all duration-200 group cursor-pointer"
-              >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  activity.status === "verified" || activity.status === "approved"
-                    ? "bg-green-100 group-hover:bg-green-200"
-                    : activity.status === "rejected"
-                    ? "bg-red-100 group-hover:bg-red-200"
-                    : "bg-blue-100 group-hover:bg-blue-200"
-                } transition-colors duration-200`}>
-                  {activity.status === "verified" || activity.status === "approved" ? (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  ) : activity.status === "rejected" ? (
-                    <X className="h-5 w-5 text-red-600" />
-                  ) : (
-                    <Clock className="h-5 w-5 text-blue-600" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors truncate">{activity.title}</p>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">{activity.time}</p>
-                </div>
-                <Badge
-                  variant={
-                    activity.status === "verified" || activity.status === "approved"
-                      ? "default"
-                      : activity.status === "rejected"
-                      ? "destructive"
-                      : "secondary"
-                  }
-                  className="font-semibold shadow-sm"
-                >
-                  {activity.status}
-                </Badge>
-              </motion.div>
-            ))}
+            {isLoading ? (
+              <div className="text-center py-4 text-gray-500">Loading activities...</div>
+            ) : activities.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">No recent activities found</div>
+            ) : (
+              activities.map((activity, index) => {
+                const Icon = getActionIcon(activity.actionType);
+                const color = getActionColor(activity.actionType);
+
+                return (
+                  <motion.div
+                    key={activity._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, type: "spring" }}
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 transition-all duration-200 group"
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-${color}-100 group-hover:bg-${color}-200 transition-colors duration-200`}>
+                      <Icon className={`h-5 w-5 text-${color}-600`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        <span className="font-bold">{activity.admin.name}</span> {activity.actionType.replace('-', ' ')} <span className="font-bold">{activity.targetLabel}</span>
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">
+                        {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="capitalize">
+                      {activity.targetType}
+                    </Badge>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>
