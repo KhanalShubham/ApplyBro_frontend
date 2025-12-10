@@ -6,6 +6,7 @@ import { Separator } from "./ui/separator";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom"; // Add useLocation
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -17,6 +18,7 @@ interface LoginPageProps {
 export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // Hook
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,6 +26,7 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
   });
 
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || ""); // Init with state message
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,9 +51,9 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
 
     // Use auth context login
     const success = await login(formData.email, formData.password);
-    
+
     setIsLoading(false);
-    
+
     if (success && onLoginSuccess) {
       onLoginSuccess();
       return;
@@ -95,6 +98,13 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
           <p className="text-center text-gray-600 mb-6">
             Log in to continue your scholarship journey
           </p>
+
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+              <div className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5">✓</div>
+              <p className="text-sm text-green-600">{successMessage}</p>
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
@@ -141,8 +151,8 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
                 <Checkbox
                   id="remember"
                   checked={formData.rememberMe}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, rememberMe: checked as boolean })
+                  onCheckedChange={(checked: boolean) =>
+                    setFormData({ ...formData, rememberMe: checked })
                   }
                   disabled={isLoading}
                 />

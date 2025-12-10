@@ -81,8 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         return;
       }
+
+      // Check for token before making API call to avoid 401
+      const token = localStorage.getItem("applybro_access_token");
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       const response = await axiosClient.get<{ status: string; data: { user: any } }>("/auth/me");
-      
+
       if (response.data.status === "success" && response.data.data?.user) {
         const apiUser = response.data.data.user;
         const user: User = {
@@ -122,14 +130,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
       });
-      
+
       if (response.data.status !== "success" || !response.data.data) {
         console.error("Login failed: Invalid response format");
         return false;
       }
 
       const { user: apiUser, accessToken, refreshToken } = response.data.data;
-      
+
       const user: User = {
         id: apiUser.id,
         name: apiUser.name,
@@ -171,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       const response = await axiosClient.get<{ status: string; data: { user: any } }>("/auth/me");
-      
+
       if (response.data.status === "success" && response.data.data?.user) {
         const apiUser = response.data.data.user;
         const user: User = {

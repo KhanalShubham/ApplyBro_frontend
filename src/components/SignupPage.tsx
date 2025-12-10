@@ -8,6 +8,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
+import { axiosClient } from "@/shared/lib/axiosClient";
+import { User, UserRole } from "@/contexts/AuthContext";
+
 interface SignupPageProps {
   onSignupSuccess?: (data: any) => void;
   onLoginClick?: () => void;
@@ -15,6 +18,8 @@ interface SignupPageProps {
 
 export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
   const navigate = useNavigate();
+  // Access enviroment variable directly.
+  const ENABLE_BACKEND_AUTH = import.meta.env.VITE_ENABLE_BACKEND !== "false";
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -99,24 +104,48 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      if (ENABLE_BACKEND_AUTH) {
+        // Real API Call
+        const payload = {
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          passwordConfirm: formData.confirmPassword,
+          role: "student",
+          profile: {
+            country: formData.country,
+          }
+        };
 
-    setIsLoading(false);
+        const response = await axiosClient.post("/auth/signup", payload);
 
-    if (onSignupSuccess) {
-      onSignupSuccess(formData);
-      return;
+        // Success - navigate to login with message
+        // We assume 2xx response means success if axios doesn't throw.
+        // If the backend returns specific status fields check them:
+        if (response.data.status === "success" || response.data.token || response.data.data?.accessToken) {
+          navigate("/login", { state: { message: "Account created successfully! Please log in." } });
+          return;
+        }
+      } else {
+        // Simulation
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        navigate("/signup/success");
+      }
+    } catch (err: any) {
+      console.error("Signup failed", err);
+      const msg = err.response?.data?.message || "Failed to create account. Please try again.";
+      setErrors((prev) => ({ ...prev, apiError: msg }));
+    } finally {
+      setIsLoading(false);
     }
-
-    navigate("/signup/success");
   };
 
   const handleLoginNavigation = () => {
@@ -229,7 +258,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               </Label>
               <Select
                 value={formData.country}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setFormData({ ...formData, country: value });
                   if (errors.country) {
                     setErrors({ ...errors, country: "" });
@@ -371,8 +400,8 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               <Checkbox
                 id="agreeToTerms"
                 checked={formData.agreeToTerms}
-                onCheckedChange={(checked) => {
-                  setFormData({ ...formData, agreeToTerms: checked as boolean });
+                onCheckedChange={(checked: boolean) => {
+                  setFormData({ ...formData, agreeToTerms: checked });
                   if (errors.agreeToTerms) {
                     setErrors({ ...errors, agreeToTerms: "" });
                   }
