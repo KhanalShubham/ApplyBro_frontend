@@ -8,6 +8,7 @@ import { Dashboard } from "./components/Dashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { useAuth } from "./contexts/AuthContext";
 import { Loader } from "./components/ui/loader";
+import { Toaster } from "./components/ui/sonner";
 
 function ProtectedRoute({ roles }: { roles?: string[] }) {
   const { user, isLoading } = useAuth();
@@ -56,6 +57,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }

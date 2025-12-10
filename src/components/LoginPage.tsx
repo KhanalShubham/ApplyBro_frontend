@@ -4,11 +4,13 @@ import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Separator } from "./ui/separator";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom"; // Add useLocation
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
+import { getRandomMessage } from "@/shared/lib/funkyMessages";
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -26,8 +28,22 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
   });
 
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState(location.state?.message || ""); // Init with state message
+  // Remove unused local successMessage state if we convert to toast immediately or usage in useEffect
+  // const [successMessage, setSuccessMessage] = useState(location.state?.message || ""); 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Show success toast on mount if came from signup
+  useEffect(() => {
+    if (location.state?.message) {
+      toast.success(location.state.message, {
+        description: getRandomMessage("signupSuccess"),
+        duration: 5000,
+      });
+      // Clear state so it doesn't show again on refresh? 
+      // Actually navigate replace is better, but valid for now.
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,14 +71,18 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
     setIsLoading(false);
 
     if (success && onLoginSuccess) {
+      toast.success(getRandomMessage("loginSuccess"));
       onLoginSuccess();
       return;
     }
 
     if (success) {
+      toast.success(getRandomMessage("loginSuccess"));
       navigate("/dashboard");
     } else {
-      setError("Invalid email or password");
+      const msg = getRandomMessage("loginFailure");
+      setError(msg);
+      toast.error(msg);
     }
   };
 
@@ -99,13 +119,23 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
             Log in to continue your scholarship journey
           </p>
 
-          {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
-              <div className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5">✓</div>
-              <p className="text-sm text-green-600">{successMessage}</p>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              console.log("Test toast clicked");
+              toast.success("Test Message: System is working!");
+            }}
+            className="mb-4 bg-yellow-300 px-4 py-2 rounded text-sm w-full font-bold"
+          >
+            🐛 CLICK TO TEST TOAST
+          </button>
 
+          {/* Legacy inline alerts removed or kept as fallback? 
+              User wants toasts. We can remove correct? 
+              Let's keep error for persistence but also toast. 
+              Actually user asked for "Toast Messages", so alerts might seem redundant if toasts appear.
+              But inline error is good for form feedback. Let's keep it but use the funky text.
+           */}
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />

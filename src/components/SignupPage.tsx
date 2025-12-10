@@ -10,6 +10,8 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 import { axiosClient } from "@/shared/lib/axiosClient";
 import { User, UserRole } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { getRandomMessage } from "@/shared/lib/funkyMessages";
 
 interface SignupPageProps {
   onSignupSuccess?: (data: any) => void;
@@ -141,8 +143,9 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
       }
     } catch (err: any) {
       console.error("Signup failed", err);
-      const msg = err.response?.data?.message || "Failed to create account. Please try again.";
+      const msg = err.response?.data?.message || getRandomMessage("signupFailure");
       setErrors((prev) => ({ ...prev, apiError: msg }));
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
