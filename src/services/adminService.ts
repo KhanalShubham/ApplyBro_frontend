@@ -65,10 +65,13 @@ export const adminService = {
     },
 
     // Scholarship Management
-    getScholarships: async (page = 1, pageSize = 20, search = "", status?: string) => {
+    getScholarships: async (page = 1, pageSize = 20, search = "", status?: string, adminOnly: boolean = false) => {
         const params: any = { page, pageSize, search };
         if (status && status !== "all") {
             params.status = status;
+        }
+        if (adminOnly) {
+            params.adminOnly = true;
         }
         return axiosClient.get(`/scholarships`, { params });
     },
@@ -83,5 +86,17 @@ export const adminService = {
 
     deleteScholarship: async (id: string) => {
         return axiosClient.delete(`/scholarships/${id}`);
+    },
+
+    uploadImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", "scholarship");
+        // Using local upload endpoint as per request for dev/local
+        return axiosClient.post<{ status: "success", data: { url: string } }>(`/uploads/local`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
     }
 };

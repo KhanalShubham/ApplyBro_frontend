@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -28,6 +28,9 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { ScholarshipDetailPage } from "./ScholarshipDetailPage";
+import { scholarshipService } from "@/services/scholarshipService";
+import { Scholarship } from "@/types/scholarship";
+import { Loader } from "../ui/loader";
 
 export function ScholarshipsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,133 +43,87 @@ export function ScholarshipsPage() {
   const [gpaRange, setGpaRange] = useState([2.5]);
   const [sortBy, setSortBy] = useState("deadline");
 
-  const scholarships = [
-    {
-      id: 1,
-      name: "Fulbright Scholarship Program",
-      country: "USA",
-      countryFlag: "🇺🇸",
-      degree: "Master",
-      field: "All Fields",
-      deadline: "2025-12-15",
-      daysLeft: 15,
-      amount: "$50,000",
-      gpaRequired: 3.5,
-      description: "Full funding for Master's students including tuition, living expenses, and travel.",
-      isBookmarked: true,
-      status: "Open",
-    },
-    {
-      id: 2,
-      name: "DAAD Scholarship",
-      country: "Germany",
-      countryFlag: "🇩🇪",
-      degree: "Bachelor",
-      field: "Engineering",
-      deadline: "2025-11-30",
-      daysLeft: 30,
-      amount: "€1,200/month",
-      gpaRequired: 3.0,
-      description: "Monthly stipend for engineering and science students in Germany.",
-      isBookmarked: false,
-      status: "Open",
-    },
-    {
-      id: 3,
-      name: "Chevening Scholarship",
-      country: "UK",
-      countryFlag: "🇬🇧",
-      degree: "Master",
-      field: "All Fields",
-      deadline: "2025-12-07",
-      daysLeft: 7,
-      amount: "Full Coverage",
-      gpaRequired: 3.3,
-      description: "UK government's global scholarship program for future leaders.",
-      isBookmarked: true,
-      status: "Closing Soon",
-    },
-    {
-      id: 4,
-      name: "Australia Awards Scholarship",
-      country: "Australia",
-      countryFlag: "🇦🇺",
-      degree: "+2",
-      field: "All Fields",
-      deadline: "2026-01-15",
-      daysLeft: 45,
-      amount: "Full Tuition",
-      gpaRequired: 2.8,
-      description: "Scholarships for undergraduate students from developing countries.",
-      isBookmarked: false,
-      status: "Open",
-    },
-    {
-      id: 5,
-      name: "MEXT Japanese Government Scholarship",
-      country: "Japan",
-      countryFlag: "🇯🇵",
-      degree: "Master",
-      field: "Science & Technology",
-      deadline: "2025-12-20",
-      daysLeft: 20,
-      amount: "¥145,000/month",
-      gpaRequired: 3.2,
-      description: "Monthly allowance plus tuition waiver for graduate students.",
-      isBookmarked: false,
-      status: "Open",
-    },
-    {
-      id: 6,
-      name: "Erasmus Mundus Scholarship",
-      country: "Europe",
-      countryFlag: "🇪🇺",
-      degree: "Master",
-      field: "All Fields",
-      deadline: "2025-11-25",
-      daysLeft: 25,
-      amount: "€1,400/month",
-      gpaRequired: 3.4,
-      description: "Study across multiple European universities with full funding.",
-      isBookmarked: true,
-      status: "Open",
-    },
-  ];
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bookmarkedScholarships, setBookmarkedScholarships] = useState<string[]>([]); // Strings for _id
 
-  const [bookmarkedScholarships, setBookmarkedScholarships] = useState(
-    scholarships.filter((s) => s.isBookmarked).map((s) => s.id)
-  );
-
-  const toggleBookmark = (id: number) => {
-    setBookmarkedScholarships((prev) =>
-      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
-    );
+  const fetchScholarships = async () => {
+    try {
+      setIsLoading(true);
+      const response = await scholarshipService.getScholarships(
+        1,
+        100, // Fetch more for client-side sorting/filtering convenience if needed, or implement full server-side
+        searchQuery,
+        {
+          country: selectedCountry,
+          degree: selectedDegree,
+          field: selectedField
+        }
+      );
+      if (response.data && response.data.data) {
+        setScholarships(response.data.data.scholarships || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch scholarships", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const filteredScholarships = scholarships.filter((scholarship) => {
-    const matchesSearch =
-      scholarship.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      scholarship.country.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCountry =
-      selectedCountry === "all" || scholarship.country === selectedCountry;
-    const matchesDegree =
-      selectedDegree === "all" || scholarship.degree === selectedDegree;
-    const matchesField =
-      selectedField === "all" || scholarship.field === selectedField;
-    const matchesGPA = scholarship.gpaRequired >= gpaRange[0];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchScholarships();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCountry, selectedDegree, selectedField]);
+
+  // Helper to get country flag (simplified)
+  const getCountryFlag = (countryName: string) => {
+    const flags: { [key: string]: string } = {
+      "USA": "🇺🇸", "United States": "🇺🇸",
+      "Germany": "🇩🇪",
+      "UK": "🇬🇧", "United Kingdom": "🇬🇧",
+      "Australia": "🇦🇺",
+      "Japan": "🇯🇵",
+      "Europe": "🇪🇺",
+      "Nepal": "🇳🇵",
+      "Canada": "🇨🇦"
+    };
+    return flags[countryName] || "🌍";
+  };
+
+  // Helper to calculate days left
+  const getDaysLeft = (deadline?: string) => {
+    if (!deadline) return 0;
+    const today = new Date();
+    const target = new Date(deadline);
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Client-side filtering/sorting for things not handled by backend or for refining
+  const filteredScholarships = scholarships.map(s => ({
+    ...s,
+    // Normalize fields if needed
+    id: s._id,
+    name: s.title || s.name || "Untitled",
+    countryFlag: getCountryFlag(s.country),
+    degree: s.level || s.degree,
+    daysLeft: getDaysLeft(s.deadline),
+    gpaRequired: s.gpaRequired || 0, // Default to 0 if missing
+    amount: s.amount || "See Details", // Default
+  })).filter((scholarship) => {
+    // Backend handles search, country, degree, field largely, but we can double check or handle bookmarks here
+    const matchesGPA = scholarship.gpaRequired <= 4.0; // Placeholder logic, adjust if gpaRange is effectively used
+
+    // For bookmarks, we need local state persistence or another API endpoint
     const matchesTab =
       activeTab === "all" ||
       (activeTab === "bookmarked" && bookmarkedScholarships.includes(scholarship.id)) ||
-      (activeTab === "recommended" && scholarship.gpaRequired <= 3.5);
+      (activeTab === "recommended" && (scholarship.gpaRequired || 0) <= 3.5); // Placeholder recommendation logic
 
-    return (
-      matchesSearch &&
-      matchesCountry &&
-      matchesDegree &&
-      matchesField &&
-      matchesGPA &&
-      matchesTab
-    );
+    return matchesGPA && matchesTab;
   });
 
   const sortedScholarships = [...filteredScholarships].sort((a, b) => {
@@ -175,11 +132,32 @@ export function ScholarshipsPage() {
     return 0;
   });
 
-  const [showDetailPage, setShowDetailPage] = useState(false);
+  const toggleBookmark = (id: string) => {
+    setBookmarkedScholarships((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    );
+  };
 
-  const handleApply = (scholarship: typeof scholarships[number]) => {
+
+  const [showDetailPage, setShowDetailPage] = useState(false);
+  const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
+
+  const handleApply = (scholarship: Scholarship) => {
+    setSelectedScholarship(scholarship);
     setShowDetailPage(true);
   };
+
+  if (showDetailPage && selectedScholarship) {
+    return (
+      <ScholarshipDetailPage
+        scholarship={selectedScholarship}
+        onBack={() => {
+          setShowDetailPage(false);
+          setSelectedScholarship(null);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -349,17 +327,15 @@ export function ScholarshipsPage() {
         <div className="flex gap-1 border rounded-lg p-1">
           <button
             onClick={() => setViewMode("grid")}
-            className={`p-2 rounded ${
-              viewMode === "grid" ? "bg-blue-100 text-blue-600" : "text-gray-600"
-            }`}
+            className={`p-2 rounded ${viewMode === "grid" ? "bg-blue-100 text-blue-600" : "text-gray-600"
+              }`}
           >
             <Grid3x3 className="h-4 w-4" />
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`p-2 rounded ${
-              viewMode === "list" ? "bg-blue-100 text-blue-600" : "text-gray-600"
-            }`}
+            className={`p-2 rounded ${viewMode === "list" ? "bg-blue-100 text-blue-600" : "text-gray-600"
+              }`}
           >
             <List className="h-4 w-4" />
           </button>
@@ -412,9 +388,8 @@ export function ScholarshipsPage() {
               transition={{ delay: index * 0.05 }}
             >
               <Card
-                className={`hover:shadow-xl transition-all h-full ${
-                  viewMode === "list" ? "flex" : ""
-                }`}
+                className={`hover:shadow-xl transition-all h-full ${viewMode === "list" ? "flex" : ""
+                  }`}
               >
                 <CardContent className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
                   <div className="flex items-start justify-between mb-3">
@@ -422,7 +397,7 @@ export function ScholarshipsPage() {
                       <span className="text-3xl">{scholarship.countryFlag}</span>
                       <Badge
                         className={
-                          scholarship.status === "Closing Soon"
+                          scholarship.status === "closed" || scholarship.daysLeft < 7
                             ? "bg-orange-500 text-white"
                             : "bg-green-500 text-white"
                         }
@@ -493,10 +468,7 @@ export function ScholarshipsPage() {
         </div>
       )}
 
-      {/* Full-screen Scholarship Detail Page Overlay */}
-      {showDetailPage && (
-        <ScholarshipDetailPage onBack={() => setShowDetailPage(false)} />
-      )}
+      {/* Full-screen Scholarship Detail Page Overlay removed as it is now conditional return */}
     </div>
   );
 }

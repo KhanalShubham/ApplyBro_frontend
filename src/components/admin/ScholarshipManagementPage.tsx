@@ -52,6 +52,7 @@ export function ScholarshipManagementPage() {
     totalPages: 1,
   });
 
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     country: "",
@@ -59,6 +60,18 @@ export function ScholarshipManagementPage() {
     deadline: "",
     status: "open",
     description: "",
+    imageUrl: "",
+    university: {
+      name: "",
+      location: {
+        country: "",
+        city: "",
+        address: ""
+      },
+      website: ""
+    },
+    requirements: [] as string[],
+    newRequirement: ""
   });
 
   const fetchScholarships = async () => {
@@ -68,13 +81,10 @@ export function ScholarshipManagementPage() {
         pagination.page,
         pagination.pageSize,
         searchQuery,
-        filterStatus === "all" ? undefined : filterStatus
+        filterStatus === "all" ? undefined : filterStatus,
+        true // adminOnly
       );
-      // Assuming response structure based on other endpoints, but standard might be slightly different.
-      // Adjusting based on standard response format { status: "success", data: { scholarships: [], pagination: {} } }
-      // If backend uses different keys, this needs adjustment. 
-      // Current assumption: data.data.scholarships
-      if (response.data && (response.data as any).data) { // Use type assertion if type not fully updated
+      if (response.data && (response.data as any).data) {
         const result = (response.data as any).data;
         setScholarships(result.scholarships || []);
         setPagination(prev => ({ ...prev, ...(result.pagination || {}) }));
@@ -99,37 +109,121 @@ export function ScholarshipManagementPage() {
     fetchScholarships();
   }, [pagination.page, pagination.pageSize]);
 
-
   const handleCreate = async () => {
     try {
+      // Validate
+      if (!formData.university.name) {
+        toast.error("University Name is required");
+        return;
+      }
+      if (!formData.university.location.country) {
+        toast.error("University Country is required");
+        return;
+      }
+      if (!formData.title) {
+        toast.error("Title is required");
+        return;
+      }
+
+      const payload = {
+        title: formData.title,
+        country: formData.country || formData.university.location.country, // Fallback or sync
+        level: formData.level,
+        deadline: formData.deadline,
+        status: formData.status,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        university: formData.university,
+        requirements: formData.requirements
+      };
+
+      console.log("Submitting scholarship payload:", payload);
+      console.log("Image URL in payload:", payload.imageUrl);
+
       if (editingScholarship) {
-        await adminService.updateScholarship(editingScholarship._id || editingScholarship.id, formData);
+        await adminService.updateScholarship(editingScholarship._id || editingScholarship.id, payload);
         toast.success("Scholarship updated successfully");
       } else {
-        await adminService.createScholarship(formData);
+        await adminService.createScholarship(payload);
         toast.success("Scholarship created successfully");
       }
       setIsDialogOpen(false);
       setEditingScholarship(null);
       resetForm();
       fetchScholarships();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error(editingScholarship ? "Failed to update scholarship" : "Failed to create scholarship");
+      const errorMessage = error.response?.data?.message || (editingScholarship ? "Failed to update scholarship" : "Failed to create scholarship");
+      toast.error(errorMessage);
     }
   };
 
   const handleEdit = (scholarship: any) => {
     setEditingScholarship(scholarship);
     setFormData({
-      title: scholarship.title || scholarship.name, // Handle potential inconsistent naming
+      title: scholarship.title || scholarship.name,
       country: scholarship.country,
       level: scholarship.level || scholarship.degree,
       deadline: scholarship.deadline ? new Date(scholarship.deadline).toISOString().split('T')[0] : "",
       status: scholarship.status,
       description: scholarship.description,
+      imageUrl: scholarship.imageUrl || "",
+      university: {
+        name: scholarship.university?.name || "",
+        location: {
+          country: scholarship.university?.location?.country || scholarship.country || "",
+          city: scholarship.university?.location?.city || "",
+          address: scholarship.university?.location?.address || ""
+        },
+        website: scholarship.university?.website || ""
+      },
+      requirements: scholarship.requirements || [],
+      newRequirement: ""
     });
     setIsDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      console.log("Uploading image:", file.name);
+      const response = await adminService.uploadImage(file);
+      console.log("Upload response:", response.data);
+      if (response.data && response.data.data && response.data.data.url) {
+        const imageUrl = response.data.data.url;
+        console.log("Setting imageUrl to:", imageUrl);
+        setFormData(prev => ({ ...prev, imageUrl }));
+        toast.success("Image uploaded!");
+      } else {
+        console.error("Invalid upload response structure:", response.data);
+        toast.error("Upload succeeded but no URL returned");
+      }
+    } catch (error) {
+      console.error("Upload failed", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddRequirement = () => {
+    if (formData.newRequirement.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        requirements: [...prev.requirements, prev.newRequirement.trim()],
+        newRequirement: ""
+      }));
+    }
+  };
+
+  const handleRemoveRequirement = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: prev.requirements.filter((_, i) => i !== index)
+    }));
   };
 
   const handleDelete = async (id: string) => {
@@ -153,6 +247,18 @@ export function ScholarshipManagementPage() {
       deadline: "",
       status: "open",
       description: "",
+      imageUrl: "",
+      university: {
+        name: "",
+        location: {
+          country: "",
+          city: "",
+          address: ""
+        },
+        website: ""
+      },
+      requirements: [],
+      newRequirement: ""
     });
   };
 
@@ -190,6 +296,106 @@ export function ScholarshipManagementPage() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Image Upload */}
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="image">Scholarship Image (Banner)</Label>
+                <div className="flex items-center gap-4">
+                  {formData.imageUrl && (
+                    <img src={formData.imageUrl} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                  )}
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
+                </div>
+              </div>
+
+              {/* University Details */}
+              <div className="border-t pt-4 mt-4">
+                <h3 className="font-medium mb-3">University Details</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="uniName">University Name *</Label>
+                      <Input
+                        id="uniName"
+                        value={formData.university.name}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          university: { ...formData.university, name: e.target.value }
+                        })}
+                        placeholder="e.g. Harvard University"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="uniSite">Website</Label>
+                      <Input
+                        id="uniSite"
+                        value={formData.university.website}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          university: { ...formData.university, website: e.target.value }
+                        })}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="uniCountry">Country *</Label>
+                      <Input
+                        id="uniCountry"
+                        value={formData.university.location.country}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          country: e.target.value, // Sync top-level country for search convenience if desired, or keep separate
+                          university: {
+                            ...formData.university,
+                            location: { ...formData.university.location, country: e.target.value }
+                          }
+                        })}
+                        placeholder="Country"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="uniCity">City</Label>
+                      <Input
+                        id="uniCity"
+                        value={formData.university.location.city}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          university: {
+                            ...formData.university,
+                            location: { ...formData.university.location, city: e.target.value }
+                          }
+                        })}
+                        placeholder="City"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="uniAddress">Address</Label>
+                      <Input
+                        id="uniAddress"
+                        value={formData.university.location.address}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          university: {
+                            ...formData.university,
+                            location: { ...formData.university.location, address: e.target.value }
+                          }
+                        })}
+                        placeholder="Street Address"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Core Details */}
+              <h3 className="font-medium mt-4">Scholarship Details</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="title">Scholarship Title *</Label>
@@ -202,30 +408,35 @@ export function ScholarshipManagementPage() {
                     placeholder="e.g., Fulbright Scholarship"
                   />
                 </div>
+                {/* Country is now handled in University section mostly, but we can keep a readonly sync or remove this input if we want strict university location. For now, let's keep it but maybe assume university country is primary. I'll hide the standalone country input to avoid confusion, or map it. Let's remove the standalone country input since we have university country. */}
+                {/* 
                 <div>
                   <Label htmlFor="country">Country *</Label>
-                  <Input
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) =>
-                      setFormData({ ...formData, country: e.target.value })
+                   ... removed ...
+                </div> 
+                */}
+                <div>
+                  <Label htmlFor="level">Degree Level *</Label>
+                  <Select
+                    value={formData.level}
+                    onValueChange={(value: string) =>
+                      setFormData({ ...formData, level: value })
                     }
-                    placeholder="e.g., United States"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+2">+2</SelectItem>
+                      <SelectItem value="Bachelor">Bachelor</SelectItem>
+                      <SelectItem value="Master">Master</SelectItem>
+                      <SelectItem value="PhD">PhD</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="level">Degree Level *</Label>
-                  <Input
-                    id="level"
-                    value={formData.level}
-                    onChange={(e) =>
-                      setFormData({ ...formData, level: e.target.value })
-                    }
-                    placeholder="e.g., Master"
-                  />
-                </div>
+
                 <div>
                   <Label htmlFor="deadline">Application Deadline *</Label>
                   <Input
@@ -237,14 +448,11 @@ export function ScholarshipManagementPage() {
                     }
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="status">Status *</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) =>
+                    onValueChange={(value: string) =>
                       setFormData({ ...formData, status: value })
                     }
                   >
@@ -259,6 +467,7 @@ export function ScholarshipManagementPage() {
                   </Select>
                 </div>
               </div>
+
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -271,14 +480,42 @@ export function ScholarshipManagementPage() {
                   rows={4}
                 />
               </div>
-              <div className="flex justify-end gap-2">
+
+              {/* Requirements */}
+              <div>
+                <Label>Requirements</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={formData.newRequirement}
+                    onChange={(e) => setFormData({ ...formData, newRequirement: e.target.value })}
+                    placeholder="Add a requirement (e.g. GPA > 3.5)"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddRequirement();
+                      }
+                    }}
+                  />
+                  <Button type="button" onClick={handleAddRequirement} variant="secondary">Add</Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.requirements.map((req, idx) => (
+                    <Badge key={idx} variant="secondary" className="flex items-center gap-1">
+                      {req}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveRequirement(idx)} />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4"> {/* Added a div to wrap buttons */}
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleCreate}>
+                <Button onClick={handleCreate} disabled={uploading}>
+                  {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {editingScholarship ? "Update" : "Create"} Scholarship
                 </Button>
               </div>
@@ -447,13 +684,6 @@ export function ScholarshipManagementPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }
-
-
-
-
-
-
-
