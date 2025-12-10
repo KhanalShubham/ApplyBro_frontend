@@ -31,6 +31,7 @@ import { ScholarshipDetailPage } from "./ScholarshipDetailPage";
 import { scholarshipService } from "@/services/scholarshipService";
 import { Scholarship } from "@/types/scholarship";
 import { Loader } from "../ui/loader";
+import { getImageUrl } from "@/shared/lib/imageUtils";
 
 export function ScholarshipsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,6 +114,7 @@ export function ScholarshipsPage() {
     daysLeft: getDaysLeft(s.deadline),
     gpaRequired: s.gpaRequired || 0, // Default to 0 if missing
     amount: s.amount || "See Details", // Default
+    imageUrl: s.imageUrl || "", // Preserve imageUrl from backend
   })).filter((scholarship) => {
     // Backend handles search, country, degree, field largely, but we can double check or handle bookmarks here
     const matchesGPA = scholarship.gpaRequired <= 4.0; // Placeholder logic, adjust if gpaRange is effectively used
@@ -388,9 +390,24 @@ export function ScholarshipsPage() {
               transition={{ delay: index * 0.05 }}
             >
               <Card
-                className={`hover:shadow-xl transition-all h-full ${viewMode === "list" ? "flex" : ""
+                className={`hover:shadow-xl transition-all h-full overflow-hidden ${viewMode === "list" ? "flex" : ""
                   }`}
               >
+                {/* Scholarship Image */}
+                {scholarship.imageUrl && scholarship.imageUrl.trim() !== '' && (
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+                    <img
+                      src={getImageUrl(scholarship.imageUrl)}
+                      alt={scholarship.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error("Image failed to load:", scholarship.imageUrl);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <CardContent className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">

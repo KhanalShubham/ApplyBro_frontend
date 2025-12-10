@@ -91,7 +91,7 @@ export const adminService = {
     uploadImage: async (file: File) => {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("type", "scholarship");
+        formData.append("type", "image"); // Backend only accepts "image", "document", or "profile"
         // Using local upload endpoint as per request for dev/local
         return axiosClient.post<{ status: "success", data: { url: string } }>(`/uploads/local`, formData, {
             headers: {

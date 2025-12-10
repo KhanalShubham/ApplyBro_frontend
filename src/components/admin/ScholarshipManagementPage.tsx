@@ -37,6 +37,7 @@ import { Textarea } from "../ui/textarea";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
 import { Loader } from "../ui/loader";
+import { getImageUrl } from "@/shared/lib/imageUtils";
 
 export function ScholarshipManagementPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -301,7 +302,7 @@ export function ScholarshipManagementPage() {
                 <Label htmlFor="image">Scholarship Image (Banner)</Label>
                 <div className="flex items-center gap-4">
                   {formData.imageUrl && (
-                    <img src={formData.imageUrl} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                    <img src={getImageUrl(formData.imageUrl)} alt="Preview" className="h-16 w-16 object-cover rounded" />
                   )}
                   <Input
                     id="image"

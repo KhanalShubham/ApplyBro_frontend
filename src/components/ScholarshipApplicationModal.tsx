@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { cn } from "./ui/utils";
+import { getImageUrl } from "@/shared/lib/imageUtils";
 
 export interface ScholarshipDocument {
   type: string;
@@ -85,6 +86,7 @@ export interface ScholarshipDetail {
   amount: string;
   deadline: string;
   verified: boolean;
+  imageUrl?: string; // Add imageUrl field for scholarship image
   overview: {
     summary: string;
     duration: string;
@@ -110,7 +112,8 @@ interface ScholarshipApplicationModalProps {
 
 const PHASES = ["Overview", "Eligibility", "Documents", "Intake & Timeline", "Local Support", "Submit"];
 
-const LOGO_URL = "/mnt/data/bb93b293-695f-4e0a-acee-8d1c15e82b06.png";
+// Fallback logo URL if scholarship image is not available
+const FALLBACK_LOGO_URL = "/mnt/data/bb93b293-695f-4e0a-acee-8d1c15e82b06.png";
 
 export function ScholarshipApplicationModal({ open, onOpenChange, detail }: ScholarshipApplicationModalProps) {
   const [activePhase, setActivePhase] = useState(PHASES[0]);
@@ -244,9 +247,9 @@ export function ScholarshipApplicationModal({ open, onOpenChange, detail }: Scho
                 <CardContent className="p-6 space-y-6">
                   <div className="flex flex-wrap items-center gap-4">
                     <ImageWithFallback
-                      src={LOGO_URL}
-                      alt="ApplyBro Logo"
-                      className="h-16 w-16 rounded-2xl object-contain bg-white p-2 shadow border border-slate-100"
+                      src={detail.imageUrl ? getImageUrl(detail.imageUrl) : FALLBACK_LOGO_URL}
+                      alt={detail.title || "Scholarship Image"}
+                      className="h-16 w-16 rounded-2xl object-cover bg-white p-2 shadow border border-slate-100"
                     />
                     <div className="flex-1">
                       <p className="text-sm text-slate-500">{detail.college}</p>

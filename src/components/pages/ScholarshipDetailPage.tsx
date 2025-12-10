@@ -6,6 +6,7 @@ import {
   GraduationCap, DollarSign, Clock, Award
 } from 'lucide-react';
 import { Scholarship } from '@/types/scholarship';
+import { getImageUrl } from '@/shared/lib/imageUtils';
 
 interface ScholarshipPageProps {
   scholarship: Scholarship;
@@ -32,7 +33,7 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
       <div className="h-64 md:h-80 w-full relative bg-slate-900">
         {scholarship.imageUrl && scholarship.imageUrl.trim() !== '' && (
           <img
-            src={scholarship.imageUrl}
+            src={getImageUrl(scholarship.imageUrl)}
             alt={scholarship.title}
             className="w-full h-full object-cover"
             onError={(e) => {
