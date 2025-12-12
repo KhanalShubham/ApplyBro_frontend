@@ -30,6 +30,7 @@ import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
 import { Loader } from "../ui/loader";
 import { Document } from "@/types/admin";
+import { getImageUrl } from "@/shared/lib/imageUtils";
 
 export function DocumentVerificationPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -261,7 +262,11 @@ export function DocumentVerificationPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {doc.url && (
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={doc.url.startsWith('http') ? doc.url : `http://localhost:4000${doc.url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               <Button variant="ghost" size="sm">
                                 <Eye className="h-4 w-4" />
                               </Button>

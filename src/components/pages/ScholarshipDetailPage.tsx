@@ -36,8 +36,13 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
             src={getImageUrl(scholarship.imageUrl)}
             alt={scholarship.title}
             className="w-full h-full object-cover"
+            onLoad={() => {
+              console.log(`✅ Detail page image loaded for "${scholarship.title}":`, getImageUrl(scholarship.imageUrl));
+            }}
             onError={(e) => {
-              console.error("Image failed to load:", scholarship.imageUrl);
+              console.error(`❌ Detail page image failed for "${scholarship.title}"`);
+              console.error("  Original imageUrl:", scholarship.imageUrl);
+              console.error("  Resolved URL:", getImageUrl(scholarship.imageUrl));
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}

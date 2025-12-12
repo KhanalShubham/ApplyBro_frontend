@@ -1,5 +1,6 @@
 import { axiosClient } from "@/shared/lib/axiosClient";
 import { ScholarshipsResponse } from "@/types/scholarship";
+import { ScholarshipMatchResponse } from "@/types/scholarshipMatch";
 
 export const scholarshipService = {
     getScholarships: async (
@@ -26,5 +27,30 @@ export const scholarshipService = {
 
     getScholarshipById: async (id: string) => {
         return axiosClient.get(`/scholarships/${id}`);
-    }
+    },
+
+    /**
+     * Get matched scholarships based on user's documents and profile
+     * @param documentId - Optional specific document ID to match against
+     */
+    getMatchedScholarships: async (documentId?: string): Promise<ScholarshipMatchResponse> => {
+        const params = documentId ? { documentId } : {};
+        const response = await axiosClient.get<ScholarshipMatchResponse>(
+            '/scholarships/match',
+            { params }
+        );
+        return response.data;
+    },
+
+    /**
+     * Trigger scholarship matching for a specific document
+     * @param documentId - Document ID to match scholarships for
+     */
+    triggerMatch: async (documentId: string): Promise<ScholarshipMatchResponse> => {
+        const response = await axiosClient.post<ScholarshipMatchResponse>(
+            '/scholarships/match',
+            { documentId }
+        );
+        return response.data;
+    },
 };

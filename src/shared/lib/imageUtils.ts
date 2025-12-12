@@ -7,7 +7,7 @@ const BACKEND_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '
 
 /**
  * Constructs a full image URL from a relative path
- * Uses API endpoint to serve files with proper CORS headers
+ * Uses direct backend URL to avoid CORS issues
  * @param imageUrl - The image URL (can be relative or absolute)
  * @returns Full URL to the image
  */
@@ -21,19 +21,12 @@ export const getImageUrl = (imageUrl: string | undefined | null): string => {
     return imageUrl;
   }
 
-  // If it's a relative path starting with /uploads/, use API endpoint for CORS support
-  if (imageUrl.startsWith('/uploads/')) {
-    // Remove leading /uploads/ and use API endpoint
-    const filePath = imageUrl.replace(/^\/uploads\//, '');
-    return `${API_BASE_URL}/uploads/file/${filePath}`;
-  }
-
-  // If it's a relative path starting with /, prepend backend URL
+  // For all relative paths starting with /, use direct backend URL (not API endpoint)
+  // This serves files directly from backend, avoiding CORS issues with /api/v1 routes
   if (imageUrl.startsWith('/')) {
     return `${BACKEND_BASE_URL}${imageUrl}`;
   }
 
   // Otherwise, assume it's relative to backend uploads
-  return `${API_BASE_URL}/uploads/file/${imageUrl}`;
+  return `${BACKEND_BASE_URL}/uploads/${imageUrl}`;
 };
-

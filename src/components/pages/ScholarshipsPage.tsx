@@ -62,7 +62,12 @@ export function ScholarshipsPage() {
         }
       );
       if (response.data && response.data.data) {
-        setScholarships(response.data.data.scholarships || []);
+        const scholarships = response.data.data.scholarships || [];
+        console.log("📚 Fetched scholarships:", scholarships);
+        scholarships.forEach((s: any) => {
+          console.log(`Scholarship "${s.title}" imageUrl:`, s.imageUrl);
+        });
+        setScholarships(scholarships);
       }
     } catch (error) {
       console.error("Failed to fetch scholarships", error);
@@ -400,8 +405,13 @@ export function ScholarshipsPage() {
                       src={getImageUrl(scholarship.imageUrl)}
                       alt={scholarship.name}
                       className="w-full h-full object-cover"
+                      onLoad={() => {
+                        console.log(`✅ Image loaded successfully for "${scholarship.name}":`, getImageUrl(scholarship.imageUrl));
+                      }}
                       onError={(e) => {
-                        console.error("Image failed to load:", scholarship.imageUrl);
+                        console.error(`❌ Image failed to load for "${scholarship.name}"`);
+                        console.error("  Original imageUrl:", scholarship.imageUrl);
+                        console.error("  Resolved URL:", getImageUrl(scholarship.imageUrl));
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
                       }}

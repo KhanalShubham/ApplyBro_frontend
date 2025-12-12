@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Progress } from "../ui/progress";
-import { Input } from "../ui/input";
 import {
   Upload,
   FileText,
@@ -13,323 +11,313 @@ import {
   Trash2,
   Eye,
   Download,
-  X,
+  Sparkles,
+  Target,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-
-interface Document {
-  id: number;
-  name: string;
-  type: "+2 Transcript" | "Bachelor Transcript" | "Other";
-  fileName: string;
-  uploadDate: string;
-  size: string;
-  status: "Verified" | "Pending" | "Rejected";
-  thumbnail?: string;
-}
+import { DocumentUploadModal } from "../DocumentUploadModal";
+import { MatchResultsList } from "../MatchResultsList";
+import { documentService } from "@/services/documentService";
+import { scholarshipService } from "@/services/scholarshipService";
+import { Document } from "@/types/document";
+import { MatchedScholarship } from "@/types/scholarshipMatch";
+import { toast } from "sonner";
+import { Loader } from "../ui/loader";
+import { formatFileSize } from "@/shared/lib/fileValidation";
+import { formatDeadline } from "@/shared/lib/dateUtils";
 
 export function DocumentsPage() {
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: 1,
-      name: "+2 Transcript",
-      type: "+2 Transcript",
-      fileName: "grade_12_transcript.pdf",
-      uploadDate: "Nov 1, 2025",
-      size: "2.3 MB",
-      status: "Verified",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-      id: 2,
-      name: "Bachelor Transcript",
-      type: "Bachelor Transcript",
-      fileName: "bachelor_degree_transcript.pdf",
-      uploadDate: "Nov 3, 2025",
-      size: "3.1 MB",
-      status: "Pending",
-      thumbnail: "https://images.unsplash.com/photo-1715173679369-18006e84d6a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhY2FkZW1pYyUyMGRvY3VtZW50cyUyMGNlcnRpZmljYXRlfGVufDF8fHx8MTc2MjM2NTk5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [showMatches, setShowMatches] = useState(false);
+  const [matches, setMatches] = useState<MatchedScholarship[]>([]);
+  const [isLoadingMatches, setIsLoadingMatches] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
 
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      simulateUpload(file);
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await documentService.getMyDocuments();
+      setDocuments(response.data.documents || []);
+    } catch (error) {
+      console.error("Failed to fetch documents", error);
+      toast.error("Failed to load documents");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const simulateUpload = (file: File) => {
-    setUploading(true);
-    setUploadProgress(0);
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setUploading(false);
-          
-          // Add the new document
-          const newDoc: Document = {
-            id: documents.length + 1,
-            name: "Other Document",
-            type: "Other",
-            fileName: file.name,
-            uploadDate: new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-            size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-            status: "Pending",
-          };
-          setDocuments([...documents, newDoc]);
-          setSelectedFile(null);
-          
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
+  const handleDelete = async (docId: string) => {
+    if (!confirm("Are you sure you want to delete this document?")) {
+      return;
+    }
+
+    try {
+      await documentService.deleteDocument(docId);
+      toast.success("Document deleted");
+      fetchDocuments();
+    } catch (error) {
+      console.error("Failed to delete document", error);
+      toast.error("Failed to delete document");
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setDocuments(documents.filter((doc) => doc.id !== id));
+  const handleView = (document: Document) => {
+    const url = documentService.getDocumentUrl(document);
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      toast.error("Document URL not available");
+    }
   };
 
-  const verificationTimeline = [
-    { step: "Submitted", status: "completed", date: "Nov 3, 2025" },
-    { step: "Under Review", status: "active", date: "In Progress" },
-    { step: "Approved", status: "pending", date: "Pending" },
-  ];
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      verified: { color: "bg-green-600 text-white", icon: CheckCircle, label: "Verified" },
+      pending: { color: "bg-orange-600 text-white", icon: Clock, label: "Pending" },
+      parsing: { color: "bg-blue-600 text-white", icon: Clock, label: "Parsing" },
+      parsed: { color: "bg-green-600 text-white", icon: CheckCircle, label: "Parsed" },
+      rejected: { color: "bg-red-600 text-white", icon: AlertCircle, label: "Rejected" },
+      error: { color: "bg-red-600 text-white", icon: AlertCircle, label: "Error" },
+    };
+
+    const config = statusMap[status as keyof typeof statusMap] || statusMap.pending;
+    const Icon = config.icon;
+
+    return (
+      <Badge className={config.color}>
+        <Icon className="mr-1 h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const handleFindMatches = async () => {
+    try {
+      setIsLoadingMatches(true);
+      const response = await scholarshipService.getMatchedScholarships();
+      setMatches(response.data.matches || []);
+      setShowMatches(true);
+      toast.success(`Found ${response.data.matches?.length || 0} matching scholarships!`);
+    } catch (error) {
+      console.error("Failed to find matches", error);
+      toast.error("Failed to find scholarship matches");
+    } finally {
+      setIsLoadingMatches(false);
+    }
+  };
+
+  const handleBookmark = (scholarshipId: string) => {
+    setBookmarkedIds(prev =>
+      prev.includes(scholarshipId)
+        ? prev.filter(id => id !== scholarshipId)
+        : [...prev, scholarshipId]
+    );
+    toast.success(bookmarkedIds.includes(scholarshipId) ? "Bookmark removed" : "Scholarship bookmarked");
+  };
+
+  const handleBackToDocuments = () => {
+    setShowMatches(false);
+  };
+
+  if (isLoading) {
+    return <Loader className="min-h-[400px]" />;
+  }
+
+  // Show match results if user clicked "Find Matches"
+  if (showMatches) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="outline" onClick={handleBackToDocuments}>
+            ← Back to Documents
+          </Button>
+        </div>
+        <MatchResultsList
+          matches={matches}
+          isLoading={isLoadingMatches}
+          onBookmark={handleBookmark}
+          bookmarkedIds={bookmarkedIds}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="mb-2">📁 My Documents</h1>
-        <p className="text-gray-600">
-          Upload and manage your academic documents for scholarship applications
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="mb-2">📁 My Documents</h1>
+          <p className="text-gray-600">
+            Upload and manage your academic documents for scholarship applications
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {documents.length > 0 && (
+            <Button
+              onClick={handleFindMatches}
+              disabled={isLoadingMatches}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <Target className="mr-2 h-4 w-4" />
+              {isLoadingMatches ? "Finding Matches..." : "Find Matches"}
+            </Button>
+          )}
+          <Button
+            onClick={() => setUploadModalOpen(true)}
+            style={{ backgroundColor: "#007BFF" }}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Document
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Upload Progress */}
-          <AnimatePresence>
-            {uploading && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <Card className="border-2 border-blue-200 bg-blue-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center animate-pulse">
-                          <Upload className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-sm">Uploading...</div>
-                          <div className="text-xs text-gray-600">
-                            {selectedFile?.name}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-sm text-blue-600">{uploadProgress}%</span>
-                    </div>
-                    <Progress value={uploadProgress} className="h-2" />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Document Cards */}
-          <div className="space-y-4">
-            {documents.map((doc, index) => (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card
-                  className={`border-2 ${
-                    doc.status === "Verified"
-                      ? "border-green-200 bg-green-50/50"
-                      : doc.status === "Pending"
-                      ? "border-orange-200 bg-orange-50/50"
-                      : "border-red-200 bg-red-50/50"
-                  }`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      {/* Thumbnail */}
-                      {doc.thumbnail && (
-                        <ImageWithFallback
-                          src={doc.thumbnail}
-                          alt={doc.name}
-                          className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
-                        />
-                      )}
-
-                      {/* Document Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="mb-1">{doc.name}</h3>
-                            <p className="text-sm text-gray-600 truncate">
-                              {doc.fileName}
-                            </p>
-                          </div>
-                          <Badge
-                            className={
-                              doc.status === "Verified"
-                                ? "bg-green-600 text-white"
-                                : doc.status === "Pending"
-                                ? "bg-orange-600 text-white"
-                                : "bg-red-600 text-white"
-                            }
-                          >
-                            {doc.status === "Verified" && (
-                              <CheckCircle className="mr-1 h-3 w-3" />
-                            )}
-                            {doc.status === "Pending" && (
-                              <Clock className="mr-1 h-3 w-3" />
-                            )}
-                            {doc.status === "Rejected" && (
-                              <AlertCircle className="mr-1 h-3 w-3" />
-                            )}
-                            {doc.status}
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                          <span>📅 {doc.uploadDate}</span>
-                          <span>💾 {doc.size}</span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:bg-red-50"
-                            onClick={() => handleDelete(doc.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Upload New Document */}
-          <Card className="border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
-            <CardContent className="p-8">
-              <div className="text-center">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ backgroundColor: "#E9F2FF" }}
-                >
-                  <Upload className="h-8 w-8 text-blue-600" />
+          {documents.length === 0 ? (
+            <Card className="p-12 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 className="mb-2">Upload New Document</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Drag and drop your file here or click to browse
+                <h3 className="mb-2">No documents yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Upload your academic documents to get started with scholarship matching.
                 </p>
-                <label htmlFor="file-upload">
-                  <Button
-                    style={{ backgroundColor: "#007BFF" }}
-                    className="cursor-pointer"
-                    onClick={() => document.getElementById("file-upload")?.click()}
+                <Button
+                  onClick={() => setUploadModalOpen(true)}
+                  style={{ backgroundColor: "#007BFF" }}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Your First Document
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {documents.map((doc, index) => (
+                <motion.div
+                  key={doc._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card
+                    className={`border-2 ${doc.verificationStatus === "verified" || doc.status === "verified"
+                      ? "border-green-200 bg-green-50/50"
+                      : doc.verificationStatus === "pending" || doc.status === "pending"
+                        ? "border-orange-200 bg-orange-50/50"
+                        : doc.verificationStatus === "rejected" || doc.status === "rejected"
+                          ? "border-red-200 bg-red-50/50"
+                          : "border-blue-200 bg-blue-50/50"
+                      }`}
                   >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Choose File
-                  </Button>
-                </label>
-                <input
-                  id="file-upload"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileSelect}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    <CardContent className="p-6">
+                      <div className="flex gap-4">
+                        {/* Document Icon */}
+                        <div className="w-16 h-16 rounded-lg bg-white border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
+                          <FileText className="h-8 w-8 text-blue-600" />
+                        </div>
 
-          {/* Verification Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>📋 Verification Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {verificationTimeline.map((item, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          item.status === "completed"
-                            ? "bg-green-600"
-                            : item.status === "active"
-                            ? "bg-blue-600 animate-pulse"
-                            : "bg-gray-300"
-                        }`}
-                      >
-                        {item.status === "completed" ? (
-                          <CheckCircle className="h-5 w-5 text-white" />
-                        ) : item.status === "active" ? (
-                          <Clock className="h-5 w-5 text-white" />
-                        ) : (
-                          <div className="w-3 h-3 bg-white rounded-full" />
-                        )}
+                        {/* Document Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="mb-1">{doc.type}</h3>
+                              <p className="text-sm text-gray-600 truncate">
+                                {doc.fileName || doc.originalName}
+                              </p>
+                            </div>
+                            {getStatusBadge(doc.verificationStatus || doc.status)}
+                          </div>
+
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <span>📅 {formatDeadline(doc.uploadedAt)}</span>
+                            {doc.fileSize && <span>💾 {formatFileSize(doc.fileSize)}</span>}
+                          </div>
+
+                          {/* Parsed Data Summary */}
+                          {doc.parsedData && (
+                            <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Sparkles className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm font-medium">Extracted Information</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                {doc.parsedData.level && (
+                                  <div>
+                                    <span className="text-gray-600">Level:</span>{" "}
+                                    <span className="font-medium">{doc.parsedData.level}</span>
+                                  </div>
+                                )}
+                                {doc.parsedData.gpa && (
+                                  <div>
+                                    <span className="text-gray-600">GPA:</span>{" "}
+                                    <span className="font-medium">{doc.parsedData.gpa}</span>
+                                  </div>
+                                )}
+                                {doc.parsedData.stream && (
+                                  <div>
+                                    <span className="text-gray-600">Stream:</span>{" "}
+                                    <span className="font-medium">{doc.parsedData.stream}</span>
+                                  </div>
+                                )}
+                                {doc.parsedData.ieltsOverall && (
+                                  <div>
+                                    <span className="text-gray-600">IELTS:</span>{" "}
+                                    <span className="font-medium">{doc.parsedData.ieltsOverall}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Rejection Reason */}
+                          {(doc.rejectionReason || doc.adminNote) && (
+                            <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                              <p className="text-sm text-red-800">
+                                <strong>Rejection Reason:</strong> {doc.rejectionReason || doc.adminNote}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleView(doc)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => handleDelete(doc._id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      {index < verificationTimeline.length - 1 && (
-                        <div
-                          className={`w-0.5 h-12 ${
-                            item.status === "completed"
-                              ? "bg-green-600"
-                              : "bg-gray-300"
-                          }`}
-                        />
-                      )}
-                    </div>
-                    <div className="flex-1 pb-8">
-                      <div className="text-sm mb-1">{item.step}</div>
-                      <div className="text-xs text-gray-600">{item.date}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Right Sidebar - Upload Rules */}
+        {/* Right Sidebar - Upload Guidelines */}
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
@@ -390,6 +378,13 @@ export function DocumentsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      <DocumentUploadModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onUploadSuccess={fetchDocuments}
+      />
     </div>
   );
 }
