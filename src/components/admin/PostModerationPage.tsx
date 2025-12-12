@@ -56,8 +56,10 @@ export function PostModerationPage() {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      // Use getPendingPosts for pending filter, otherwise use getPosts with status
-      const response = filterStatus === 'pending' || filterStatus === 'all'
+      // For "all" status, use getPosts with no status filter to show all posts including removed ones
+      // For "pending", use getPendingPosts
+      // For other statuses, use getPosts with specific status
+      const response = filterStatus === 'pending'
         ? await adminService.getPendingPosts(pagination.page, pagination.pageSize)
         : await adminService.getPosts(
             pagination.page,

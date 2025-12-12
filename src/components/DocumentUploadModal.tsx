@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -132,9 +132,6 @@ export function DocumentUploadModal({ open, onOpenChange, onUploadSuccess }: Doc
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Upload Document</DialogTitle>
-                    <DialogDescription>
-                        Upload your academic documents for scholarship matching. Supported formats: PDF, JPG, PNG (max 5 MB).
-                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">

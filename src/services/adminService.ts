@@ -46,11 +46,14 @@ export const adminService = {
 
     // Post Moderation
     getPosts: async (page = 1, pageSize = 20, search = "", status?: string) => {
-        const params: any = { page, pageSize, search };
+        const params: any = { page, pageSize };
+        // For admins, use the regular posts endpoint which shows all posts when status is 'all' or undefined
+        // Pass status only if it's a specific status (not 'all')
         if (status && status !== "all") {
             params.status = status;
         }
-        return axiosClient.get<PostsResponse>(`/admin/posts/pending`, { params });
+        // Use the regular posts endpoint which respects admin role and shows all posts when no status filter
+        return axiosClient.get<PostsResponse>(`/posts`, { params });
     },
 
     getPendingPosts: async (page = 1, pageSize = 20) => {

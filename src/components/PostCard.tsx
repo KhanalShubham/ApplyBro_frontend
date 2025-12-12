@@ -19,6 +19,7 @@ import { formatRelativeTime } from '@/shared/lib/timeUtils';
 import { communityService } from '@/services/communityService';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { getImageUrl } from '@/shared/lib/imageUtils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,9 +188,13 @@ export function PostCard({
                 onClick={() => onView?.(post)}
               >
                 <img
-                  src={image.url}
+                  src={getImageUrl(image.url)}
                   alt={image.alt || `Post image ${idx + 1}`}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Failed to load image:', image.url);
+                    (e.target as HTMLImageElement).src = '';
+                  }}
                 />
               </div>
             ))}
@@ -257,4 +262,5 @@ export function PostCard({
     </Card>
   );
 }
+
 

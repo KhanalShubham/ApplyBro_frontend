@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatRelativeTime } from '@/shared/lib/timeUtils';
 import { CommentItem } from './CommentItem';
 import { ReportModal } from './ReportModal';
+import { getImageUrl } from '@/shared/lib/imageUtils';
 
 interface PostDetailModalProps {
   post: Post;
@@ -171,9 +172,13 @@ export function PostDetailModal({ post: initialPost, open, onOpenChange, onPostU
                   {post.images.map((image, idx) => (
                     <div key={idx} className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                       <img
-                        src={image.url}
+                        src={getImageUrl(image.url)}
                         alt={image.alt || `Post image ${idx + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Failed to load image:', image.url);
+                          (e.target as HTMLImageElement).src = '';
+                        }}
                       />
                     </div>
                   ))}
@@ -302,4 +307,5 @@ export function PostDetailModal({ post: initialPost, open, onOpenChange, onPostU
     </>
   );
 }
+
 

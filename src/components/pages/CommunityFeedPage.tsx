@@ -35,7 +35,7 @@ export function CommunityFeedPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedTag, setSelectedTag] = useState<string>('');
+  const [selectedTag, setSelectedTag] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
   
@@ -57,7 +57,7 @@ export function CommunityFeedPage() {
       };
       
       if (selectedCategory !== 'all') params.category = selectedCategory;
-      if (selectedTag) params.tag = selectedTag;
+      if (selectedTag && selectedTag !== 'all') params.tag = selectedTag;
       if (selectedCountry) params.country = selectedCountry;
       
       const response = await communityService.getPosts(params);
@@ -183,7 +183,7 @@ export function CommunityFeedPage() {
                 <SelectValue placeholder="Tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Tags</SelectItem>
+                <SelectItem value="all">All Tags</SelectItem>
                 {allTags.map(tag => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -201,7 +201,7 @@ export function CommunityFeedPage() {
           </div>
           
           {/* Active Filters */}
-          {(selectedCategory !== 'all' || selectedTag || selectedCountry) && (
+          {(selectedCategory !== 'all' || (selectedTag && selectedTag !== 'all') || selectedCountry) && (
             <div className="flex flex-wrap gap-2 mt-4">
               {selectedCategory !== 'all' && (
                 <Button
@@ -213,11 +213,11 @@ export function CommunityFeedPage() {
                   <X className="ml-2 h-3 w-3" />
                 </Button>
               )}
-              {selectedTag && (
+              {selectedTag && selectedTag !== 'all' && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setSelectedTag('')}
+                  onClick={() => setSelectedTag('all')}
                 >
                   Tag: {selectedTag}
                   <X className="ml-2 h-3 w-3" />
@@ -249,7 +249,7 @@ export function CommunityFeedPage() {
                 </div>
                 <h3 className="mb-2">No posts found</h3>
                 <p className="text-gray-600 mb-4">
-                  {searchQuery || selectedCategory !== 'all' || selectedTag || selectedCountry
+                  {searchQuery || selectedCategory !== 'all' || (selectedTag && selectedTag !== 'all') || selectedCountry
                     ? 'Try adjusting your filters'
                     : 'Be the first to share your story!'}
                 </p>
@@ -404,4 +404,5 @@ export function CommunityFeedPage() {
     </div>
   );
 }
+
 
