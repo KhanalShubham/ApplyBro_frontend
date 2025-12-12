@@ -27,6 +27,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { adminService } from "@/services/adminService";
 import { toast } from "sonner";
 import { Loader } from "../ui/loader";
@@ -47,12 +56,15 @@ export function PostModerationPage() {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      const response = await adminService.getPosts(
-        pagination.page,
-        pagination.pageSize,
-        searchQuery,
-        filterStatus === "all" ? undefined : filterStatus
-      );
+      // Use getPendingPosts for pending filter, otherwise use getPosts with status
+      const response = filterStatus === 'pending' || filterStatus === 'all'
+        ? await adminService.getPendingPosts(pagination.page, pagination.pageSize)
+        : await adminService.getPosts(
+            pagination.page,
+            pagination.pageSize,
+            searchQuery,
+            filterStatus === "all" ? undefined : filterStatus
+          );
       if (response.data && response.data.data) {
         setPosts(response.data.data.posts || []);
         setPagination(prev => ({ ...prev, ...(response.data.data.pagination || {}) }));
@@ -77,28 +89,48 @@ export function PostModerationPage() {
     fetchPosts();
   }, [pagination.page, pagination.pageSize]);
 
+  const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [selectedPostForDecline, setSelectedPostForDecline] = useState<Post | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [adminNote, setAdminNote] = useState('');
+
   const handleApprove = async (postId: string) => {
     try {
-      await adminService.moderatePost(postId, { status: "approved" });
+      await adminService.approvePost(postId);
       toast.success("Post approved successfully");
       fetchPosts();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to approve post");
+      toast.error(error.response?.data?.message || "Failed to approve post");
     }
   };
 
-  const handleReject = async (postId: string) => {
-    const reason = prompt("Enter rejection reason:");
-    if (reason) {
-      try {
-        await adminService.moderatePost(postId, { status: "declined", adminNote: reason });
-        toast.success("Post rejected");
-        fetchPosts();
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to reject post");
-      }
+  const handleReject = (post: Post) => {
+    setSelectedPostForDecline(post);
+    setDeclineModalOpen(true);
+  };
+
+  const handleDeclineSubmit = async () => {
+    if (!selectedPostForDecline || !declineReason.trim()) {
+      toast.error("Please provide a decline reason");
+      return;
+    }
+
+    try {
+      await adminService.declinePost(
+        selectedPostForDecline._id,
+        declineReason.trim(),
+        adminNote.trim() || undefined
+      );
+      toast.success("Post declined successfully");
+      setDeclineModalOpen(false);
+      setSelectedPostForDecline(null);
+      setDeclineReason('');
+      setAdminNote('');
+      fetchPosts();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to decline post");
     }
   };
 
@@ -247,9 +279,9 @@ export function PostModerationPage() {
                           )}
                           {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                         </Badge>
-                        {post.rejectionReason && (
+                        {(post.declineReason || post.rejectionReason) && (
                           <p className="text-xs text-red-600 mt-1">
-                            {post.rejectionReason}
+                            {post.declineReason || post.rejectionReason}
                           </p>
                         )}
                       </TableCell>
@@ -272,10 +304,10 @@ export function PostModerationPage() {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleReject(post._id)}
+                                onClick={() => handleReject(post)}
                               >
                                 <X className="mr-1 h-4 w-4" />
-                                Reject
+                                Decline
                               </Button>
                             </>
                           )}
@@ -319,6 +351,61 @@ export function PostModerationPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Decline Post Modal */}
+      <Dialog open={declineModalOpen} onOpenChange={setDeclineModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Decline Post</DialogTitle>
+            <DialogDescription>
+              Provide a reason for declining this post. The author will be notified.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {selectedPostForDecline && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium mb-1">{selectedPostForDecline.title}</p>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {selectedPostForDecline.body || selectedPostForDecline.content}
+                </p>
+              </div>
+            )}
+            <div>
+              <Label htmlFor="declineReason">Decline Reason *</Label>
+              <Textarea
+                id="declineReason"
+                placeholder="e.g., Contains inappropriate content, violates community guidelines..."
+                rows={4}
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="adminNote">Admin Note (optional, internal)</Label>
+              <Textarea
+                id="adminNote"
+                placeholder="Internal notes (not visible to user)..."
+                rows={2}
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setDeclineModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeclineSubmit}
+                disabled={!declineReason.trim()}
+              >
+                Decline Post
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

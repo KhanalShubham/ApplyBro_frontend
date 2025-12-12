@@ -100,13 +100,18 @@ export interface Post {
         avatar?: string;
     };
     title: string;
-    content: string;
+    body?: string; // Backend returns 'body'
+    content?: string; // Keep for backward compatibility
     category: string;
-    status: "pending" | "approved" | "rejected";
+    status: "pending" | "approved" | "declined" | "rejected" | "removed";
     createdAt: string;
     likesCount: number;
     commentsCount: number;
-    rejectionReason?: string;
+    declineReason?: string;
+    rejectionReason?: string; // Keep for backward compatibility
+    tags?: string[];
+    country?: string;
+    images?: Array<{ url: string; alt?: string }>;
 }
 
 export interface PostsResponse {

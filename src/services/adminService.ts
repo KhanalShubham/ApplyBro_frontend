@@ -50,13 +50,51 @@ export const adminService = {
         if (status && status !== "all") {
             params.status = status;
         }
-        return axiosClient.get<PostsResponse>(`/admin/posts`, { params });
+        return axiosClient.get<PostsResponse>(`/admin/posts/pending`, { params });
     },
 
+    getPendingPosts: async (page = 1, pageSize = 20) => {
+        return axiosClient.get<PostsResponse>(`/admin/posts/pending`, {
+            params: { page, pageSize }
+        });
+    },
 
+    approvePost: async (postId: string, messageToUser?: string) => {
+        return axiosClient.post(`/admin/posts/${postId}/approve`, { messageToUser });
+    },
+
+    declinePost: async (postId: string, declineReason: string, adminNote?: string) => {
+        return axiosClient.post(`/admin/posts/${postId}/decline`, { declineReason, adminNote });
+    },
+
+    deletePost: async (postId: string) => {
+        return axiosClient.delete(`/admin/posts/${postId}`);
+    },
 
     moderatePost: async (postId: string, data: PostModerationRequest) => {
+        // Backward compatibility - use new endpoints
+        if (data.status === 'approved') {
+            return adminService.approvePost(postId, data.adminNote);
+        } else if (data.status === 'declined') {
+            return adminService.declinePost(postId, data.adminNote || 'No reason provided', data.adminNote);
+        }
         return axiosClient.put(`/admin/posts/${postId}/moderate`, data);
+    },
+
+    // Comment Moderation
+    removeComment: async (commentId: string, reason?: string) => {
+        return axiosClient.post(`/admin/comments/${commentId}/remove`, { reason });
+    },
+
+    // Reports
+    getReports: async (status: 'open' | 'reviewed' | 'resolved' | 'all' = 'open', page = 1, pageSize = 20) => {
+        return axiosClient.get(`/admin/reports`, {
+            params: { status, page, pageSize }
+        });
+    },
+
+    resolveReport: async (reportId: string, actionTaken: string, status: 'reviewed' | 'resolved' = 'resolved') => {
+        return axiosClient.post(`/admin/reports/${reportId}/resolve`, { actionTaken, status });
     },
 
     // Analytics

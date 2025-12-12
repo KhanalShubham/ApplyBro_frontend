@@ -41,6 +41,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { UserManagementPage } from "./admin/UserManagementPage";
 import { DocumentVerificationPage } from "./admin/DocumentVerificationPage";
 import { PostModerationPage } from "./admin/PostModerationPage";
+import { ReportsManagementPage } from "./admin/ReportsManagementPage";
 import { ScholarshipManagementPage } from "./admin/ScholarshipManagementPage";
 import { AdminAnalyticsPage } from "./admin/AdminAnalyticsPage";
 import { AdminDashboardHome } from "./admin/AdminDashboardHome";
@@ -66,6 +67,7 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
     { id: "users", icon: Users, label: "User Management" },
     { id: "documents", icon: FileCheck, label: "Document Verification" },
     { id: "posts", icon: MessageSquare, label: "Post Moderation" },
+    { id: "reports", icon: AlertCircle, label: "Reports Management" },
     { id: "scholarships", icon: GraduationCap, label: "Scholarship Management" },
     { id: "analytics", icon: BarChart3, label: "Analytics" },
     { id: "settings", icon: Settings, label: "Settings" },
@@ -268,6 +270,17 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
                 transition={{ duration: 0.2 }}
               >
                 <PostModerationPage />
+              </motion.div>
+            )}
+            {activeSection === "reports" && (
+              <motion.div
+                key="reports"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ReportsManagementPage />
               </motion.div>
             )}
             {activeSection === "scholarships" && (
