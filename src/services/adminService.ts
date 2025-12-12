@@ -35,7 +35,7 @@ export const adminService = {
         if (status && status !== "all") {
             params.status = status;
         }
-        return axiosClient.get<DocumentsResponse>(`/admin/documents`, { params });
+        return axiosClient.get<DocumentsResponse>(`/admin/documents/all`, { params });
     },
 
 

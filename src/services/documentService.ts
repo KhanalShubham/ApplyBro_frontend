@@ -23,9 +23,19 @@ export const documentService = {
         note?: string,
         onUploadProgress?: (progressEvent: any) => void
     ): Promise<DocumentUploadResponse> => {
+        // Map document type to documentType category for backend
+        const documentTypeMap: Record<DocumentType, string> = {
+            '+2': 'transcript',
+            'Bachelor': 'transcript',
+            'IELTS': 'ielts',
+            'SOP': 'sop',
+            'Other': 'other'
+        };
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('type', type);
+        formData.append('documentType', documentTypeMap[type]);
         if (note) {
             formData.append('note', note);
         }

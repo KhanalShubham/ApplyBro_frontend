@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Progress } from '../ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Progress } from '../components/ui/progress';
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { DocumentType } from '@/types/document';
 import { validateFile, formatFileSize } from '@/shared/lib/fileValidation';
@@ -132,6 +132,9 @@ export function DocumentUploadModal({ open, onOpenChange, onUploadSuccess }: Doc
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Upload Document</DialogTitle>
+                    <DialogDescription>
+                        Upload your academic documents for scholarship matching. Supported formats: PDF, JPG, PNG (max 5 MB).
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
@@ -140,7 +143,7 @@ export function DocumentUploadModal({ open, onOpenChange, onUploadSuccess }: Doc
                         <Label htmlFor="documentType">Document Type *</Label>
                         <Select
                             value={documentType}
-                            onValueChange={(value) => setDocumentType(value as DocumentType)}
+                            onValueChange={(value: string) => setDocumentType(value as DocumentType)}
                             disabled={uploading}
                         >
                             <SelectTrigger id="documentType">

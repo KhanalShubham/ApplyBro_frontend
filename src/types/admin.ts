@@ -56,10 +56,13 @@ export interface AdminUsersResponse {
 export interface DocumentVerificationRequest {
     status: "verified" | "rejected";
     adminNote?: string;
+    userId?: string; // Optional userId for documents from User.documents array
 }
 
 export interface Document {
     _id: string;
+    docId?: string; // Backend may return docId instead of _id
+    userId?: string; // User ID for documents from User.documents array
     user: {
         _id: string;
         name: string;
@@ -72,6 +75,7 @@ export interface Document {
     status: "pending" | "verified" | "rejected";
     uploadedAt: string;
     rejectionReason?: string;
+    adminNote?: string; // Backend returns adminNote
 }
 
 export interface DocumentsResponse {

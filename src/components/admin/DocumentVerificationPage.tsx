@@ -54,7 +54,29 @@ export function DocumentVerificationPage() {
         filterStatus === "all" ? undefined : filterStatus
       );
       if (response.data && response.data.data) {
-        setDocuments(response.data.data.documents || []);
+        // Transform documents to match expected structure
+        const transformedDocs = (response.data.data.documents || []).map((doc: any) => {
+          // Ensure we have a valid document ID - prioritize docId from backend
+          const documentId = doc.docId || doc._id;
+          if (!documentId) {
+            console.warn("Document missing ID:", doc);
+          }
+          const userObj = doc.user || {
+            _id: doc.userId,
+            name: doc.userName || doc.user?.name,
+            email: doc.userEmail || doc.user?.email,
+            avatar: doc.userAvatar || doc.user?.avatar
+          };
+          return {
+            ...doc,
+            _id: documentId, // Map docId to _id for compatibility
+            docId: documentId, // Keep docId as well
+            userId: doc.userId || userObj._id, // Ensure userId is available
+            user: userObj,
+            rejectionReason: doc.rejectionReason || doc.adminNote // Map adminNote to rejectionReason for display
+          };
+        }).filter((doc: any) => doc._id); // Filter out documents without IDs
+        setDocuments(transformedDocs);
         setPagination(prev => ({ ...prev, ...(response.data.data.pagination || {}) }));
       }
     } catch (error) {
@@ -77,27 +99,54 @@ export function DocumentVerificationPage() {
     fetchDocuments();
   }, [pagination.page, pagination.pageSize]);
 
-  const handleVerify = async (docId: string) => {
+  const handleVerify = async (docId: string, userId?: string) => {
+    if (!docId || docId === 'undefined') {
+      toast.error("Invalid document ID");
+      console.error("Document ID is missing or invalid:", docId);
+      return;
+    }
+    console.log("Verifying document with ID:", docId, "userId:", userId);
     try {
-      await adminService.verifyDocument(docId, { status: "verified" });
+      // Include userId in request body for documents from User.documents array
+      const requestData: any = { status: "verified" };
+      if (userId) {
+        requestData.userId = userId;
+      }
+      const response = await adminService.verifyDocument(docId, requestData);
+      console.log("Verify response:", response);
       toast.success("Document verified successfully");
       fetchDocuments();
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to verify document");
+    } catch (error: any) {
+      console.error("Verify error:", error);
+      console.error("Request URL:", error.config?.url);
+      console.error("Response status:", error.response?.status);
+      console.error("Response data:", error.response?.data);
+      const errorMessage = error.response?.data?.message || "Failed to verify document";
+      toast.error(errorMessage);
     }
   };
 
-  const handleReject = async (docId: string) => {
+  const handleReject = async (docId: string, userId?: string) => {
+    if (!docId || docId === 'undefined') {
+      toast.error("Invalid document ID");
+      console.error("Document ID is missing or invalid:", docId);
+      return;
+    }
     const reason = prompt("Enter rejection reason:");
     if (reason) {
       try {
-        await adminService.verifyDocument(docId, { status: "rejected", adminNote: reason });
+        // Include userId in request body for documents from User.documents array
+        const requestData: any = { status: "rejected", adminNote: reason };
+        if (userId) {
+          requestData.userId = userId;
+        }
+        await adminService.verifyDocument(docId, requestData);
         toast.success("Document rejected");
         fetchDocuments();
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to reject document");
+      } catch (error: any) {
+        console.error("Reject error:", error);
+        const errorMessage = error.response?.data?.message || "Failed to reject document";
+        toast.error(errorMessage);
       }
     }
   };
@@ -278,7 +327,7 @@ export function DocumentVerificationPage() {
                               <Button
                                 variant="default"
                                 size="sm"
-                                onClick={() => handleVerify(doc._id)}
+                                onClick={() => handleVerify(doc._id || doc.docId || '', doc.userId || doc.user?._id)}
                               >
                                 <CheckCircle className="mr-1 h-4 w-4" />
                                 Verify
@@ -286,7 +335,7 @@ export function DocumentVerificationPage() {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleReject(doc._id)}
+                                onClick={() => handleReject(doc._id || doc.docId || '', doc.userId || doc.user?._id)}
                               >
                                 <X className="mr-1 h-4 w-4" />
                                 Reject
