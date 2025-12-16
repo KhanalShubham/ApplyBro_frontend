@@ -77,7 +77,7 @@ export function CreatePostModal({ open, onOpenChange, onPostCreated, editingPost
 
   const handleImageUpload = async (files: FileList) => {
     const fileArray = Array.from(files);
-    
+
     for (const file of fileArray) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
@@ -95,7 +95,7 @@ export function CreatePostModal({ open, onOpenChange, onPostCreated, editingPost
       setUploadingImages(prev => [...prev, fileId]);
 
       try {
-        const response = await adminService.uploadImage(file);
+        const response = await adminService.uploadFile(file, "image");
         if (response.data?.data?.url) {
           setImages(prev => [...prev, { url: response.data.data.url, alt: file.name }]);
           toast.success(`${file.name} uploaded successfully`);
@@ -190,7 +190,7 @@ export function CreatePostModal({ open, onOpenChange, onPostCreated, editingPost
       setTags([]);
       setCountry('');
       setImages([]);
-      
+
       onOpenChange(false);
       onPostCreated?.();
     } catch (error: any) {
@@ -309,11 +309,10 @@ export function CreatePostModal({ open, onOpenChange, onPostCreated, editingPost
           <div>
             <Label>Images (optional, max 5MB each)</Label>
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                dragActive
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
@@ -395,5 +394,6 @@ export function CreatePostModal({ open, onOpenChange, onPostCreated, editingPost
     </Dialog>
   );
 }
+
 
 

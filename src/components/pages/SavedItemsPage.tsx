@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -13,13 +13,18 @@ import {
   Video,
   GraduationCap,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { guidanceService, SavedItem as ApiSavedItem } from "@/services/guidanceService";
+import { toast } from "sonner";
+import { Loader } from "../ui/loader";
 
-interface SavedItem {
-  id: number;
-  type: "scholarship" | "article" | "video" | "post";
+interface SavedItemUI {
+  id: string; // The Content ID (not the saved record ID)
+  savedRecordId: string; // The actual SavedItem document ID
+  type: "scholarship" | "article" | "video" | "post" | "test" | "faq";
   title: string;
   description?: string;
   thumbnail?: string;
@@ -34,115 +39,66 @@ interface SavedItem {
 
 export function SavedItemsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"scholarships" | "guidance" | "videos" | "posts">(
-    "scholarships"
-  );
+  const [activeTab, setActiveTab] = useState<"scholarships" | "guidance" | "videos" | "posts">("scholarships");
+  const [savedItems, setSavedItems] = useState<SavedItemUI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [savedItems, setSavedItems] = useState<SavedItem[]>([
-    {
-      id: 1,
-      type: "scholarship",
-      title: "Fulbright Scholarship Program",
-      description: "Full funding for Master's students including tuition and living expenses",
-      thumbnail: "https://images.unsplash.com/photo-1653250198948-1405af521dbb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwZ3JhZHVhdGlvbiUyMGNlbGVicmF0aW9ufGVufDF8fHx8MTc2MjM2MzkxNXww&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Nov 5, 2025",
-      metadata: {
-        country: "🇺🇸 USA",
-        deadline: "15 days left",
-      },
-    },
-    {
-      id: 2,
-      type: "scholarship",
-      title: "DAAD Scholarship",
-      description: "Monthly stipend for engineering and science students",
-      thumbnail: "https://images.unsplash.com/photo-1706016899218-ebe36844f70e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2FtcHVzJTIwYnVpbGRpbmd8ZW58MXx8fHwxNzYyMjgyMjUyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Nov 4, 2025",
-      metadata: {
-        country: "🇩🇪 Germany",
-        deadline: "30 days left",
-      },
-    },
-    {
-      id: 3,
-      type: "scholarship",
-      title: "Chevening Scholarship",
-      description: "UK government's global scholarship program for future leaders",
-      thumbnail: "https://images.unsplash.com/photo-1638636241638-aef5120c5153?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzY2hvbGFyc2hpcCUyMGNlcnRpZmljYXRlJTIwc3VjY2Vzc3xlbnwxfHx8fDE3NjIzNjM5MTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Nov 3, 2025",
-      metadata: {
-        country: "🇬🇧 UK",
-        deadline: "7 days left",
-      },
-    },
-    {
-      id: 4,
-      type: "article",
-      title: "How to Write a Winning Motivation Letter",
-      description: "Complete guide with examples and templates",
-      thumbnail: "https://images.unsplash.com/photo-1632830049084-308fd151d8ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwcmVhZGluZyUyMGJvb2t8ZW58MXx8fHwxNzYyMzI2MjczfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Nov 2, 2025",
-      metadata: {
-        author: "ApplyBro Team",
-      },
-    },
-    {
-      id: 5,
-      type: "article",
-      title: "Top 10 Scholarship Essay Tips",
-      description: "Expert advice for crafting compelling scholarship essays",
-      thumbnail: "https://images.unsplash.com/photo-1760351065294-b069f6bcadc4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50cyUyMHN0dWR5aW5nJTIwdG9nZXRoZXJ8ZW58MXx8fHwxNzYyMjk5MjIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Nov 1, 2025",
-      metadata: {
-        author: "Dr. Sarah Johnson",
-      },
-    },
-    {
-      id: 6,
-      type: "video",
-      title: "IELTS Preparation Complete Guide",
-      description: "Comprehensive video course for IELTS success",
-      thumbnail: "https://images.unsplash.com/photo-1762329389942-c721052cb5ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWRlbyUyMGxlYXJuaW5nJTIwb25saW5lfGVufDF8fHx8MTc2MjM2NjYxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Oct 30, 2025",
-      metadata: {
-        duration: "45:20",
-      },
-    },
-    {
-      id: 7,
-      type: "video",
-      title: "Student Visa Application Process",
-      description: "Step-by-step guide for visa applications",
-      thumbnail: "https://images.unsplash.com/photo-1608986596619-eb50cc56831f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBsZWFybmluZyUyMGVkdWNhdGlvbnxlbnwxfHx8fDE3NjIzMDMzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      savedDate: "Oct 28, 2025",
-      metadata: {
-        duration: "32:15",
-      },
-    },
-    {
-      id: 8,
-      type: "post",
-      title: "My Germany Visa Journey 🇩🇪",
-      description: "Just got my visa approved! Here's everything you need to know about the process...",
-      savedDate: "Oct 25, 2025",
-      metadata: {
-        author: "Sarah Khadka",
-      },
-    },
-    {
-      id: 9,
-      type: "post",
-      title: "Tips for IELTS Speaking Test",
-      description: "Scored 8.5 in speaking. Sharing my preparation strategy and common mistakes...",
-      savedDate: "Oct 22, 2025",
-      metadata: {
-        author: "Rohan Sharma",
-      },
-    },
-  ]);
+  const fetchSavedItems = async () => {
+    try {
+      setIsLoading(true);
+      const response = await guidanceService.getSavedItems();
+      if (response.data && (response.data as any).data) {
+        const rawItems: ApiSavedItem[] = (response.data as any).data;
+        const mappedItems: SavedItemUI[] = rawItems.map(item => {
+          const details = item.details || {};
+          let metadata: SavedItemUI['metadata'] = {};
 
-  const handleRemove = (id: number) => {
-    setSavedItems(savedItems.filter((item) => item.id !== id));
+          if (item.itemType === 'scholarship') {
+            metadata = {
+              country: details.location?.country || details.country,
+              deadline: details.deadline ? new Date(details.deadline).toLocaleDateString() : 'N/A'
+            };
+          } else if (item.itemType === 'post') {
+            metadata = { author: details.author?.name || 'Unknown' };
+          } else {
+            // Guidance types
+            metadata = { duration: details.duration || details.readTime };
+          }
+
+          return {
+            id: item.itemId,
+            savedRecordId: item._id,
+            type: item.itemType as any,
+            title: details.title || "Untitled",
+            description: details.description || details.content?.substring(0, 100),
+            thumbnail: details.thumbnail || details.imageUrl, // Handle scholarships imageUrl vs guidance thumbnail
+            savedDate: new Date(item.createdAt).toLocaleDateString(),
+            metadata
+          };
+        });
+        setSavedItems(mappedItems);
+      }
+    } catch (error) {
+      console.error("Failed to fetch saved items", error);
+      toast.error("Failed to load saved items");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedItems();
+  }, []);
+
+  const handleRemove = async (contentId: string) => { // Expect ContentId for deletion as per controller
+    try {
+      await guidanceService.unsaveItem(contentId);
+      setSavedItems(savedItems.filter((item) => item.id !== contentId));
+      toast.success("Item removed");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove item");
+    }
   };
 
   const getFilteredItems = () => {
@@ -154,7 +110,7 @@ export function SavedItemsPage() {
         filtered = filtered.filter((item) => item.type === "scholarship");
         break;
       case "guidance":
-        filtered = filtered.filter((item) => item.type === "article");
+        filtered = filtered.filter((item) => item.type === "article" || item.type === "test" || item.type === "faq");
         break;
       case "videos":
         filtered = filtered.filter((item) => item.type === "video");
@@ -193,13 +149,14 @@ export function SavedItemsPage() {
     }
   };
 
-  const getItemCount = (type: string) => {
+  const getItemCount = (tab: string) => {
+    // Count based on tab logic
     return savedItems.filter((item) => {
-      switch (type) {
+      switch (tab) {
         case "scholarships":
           return item.type === "scholarship";
         case "guidance":
-          return item.type === "article";
+          return item.type === "article" || item.type === "test" || item.type === "faq";
         case "videos":
           return item.type === "video";
         case "posts":
@@ -209,6 +166,8 @@ export function SavedItemsPage() {
       }
     }).length;
   };
+
+  if (isLoading) return <Loader className="min-h-[400px]" />;
 
   return (
     <div className="space-y-6">
@@ -238,7 +197,7 @@ export function SavedItemsPage() {
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={(value) =>
+        onValueChange={(value: string) =>
           setActiveTab(value as "scholarships" | "guidance" | "videos" | "posts")
         }
       >
@@ -309,6 +268,8 @@ export function SavedItemsPage() {
                           {item.type === "article" && "Article"}
                           {item.type === "video" && "Video"}
                           {item.type === "post" && "Community Post"}
+                          {item.type === "faq" && "FAQ"}
+                          {item.type === "test" && "Test"}
                         </Badge>
                         <button
                           onClick={() => handleRemove(item.id)}

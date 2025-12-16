@@ -45,6 +45,8 @@ import { ReportsManagementPage } from "./admin/ReportsManagementPage";
 import { ScholarshipManagementPage } from "./admin/ScholarshipManagementPage";
 import { AdminAnalyticsPage } from "./admin/AdminAnalyticsPage";
 import { AdminDashboardHome } from "./admin/AdminDashboardHome";
+import { GuidanceManagementPage } from "./admin/GuidanceManagementPage";
+import { AdminCalendarManagementPage } from "./admin/AdminCalendarManagementPage";
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -69,6 +71,8 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
     { id: "posts", icon: MessageSquare, label: "Post Moderation" },
     { id: "reports", icon: AlertCircle, label: "Reports Management" },
     { id: "scholarships", icon: GraduationCap, label: "Scholarship Management" },
+    { id: "guidance", icon: GraduationCap, label: "Guidance" },
+    { id: "calendar", icon: Clock, label: "Calendar Events" },
     { id: "analytics", icon: BarChart3, label: "Analytics" },
     { id: "settings", icon: Settings, label: "Settings" },
   ];
@@ -190,11 +194,10 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
                   <button
                     key={item.id}
                     onClick={() => handleSectionChange(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                      activeSection === item.id
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activeSection === item.id
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-100"
+                      }`}
                   >
                     <item.icon className="h-5 w-5 flex-shrink-0" />
                     {!sidebarCollapsed && (
@@ -223,9 +226,8 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all duration-300 ${
-            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-          } ml-0`}
+          className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+            } ml-0`}
         >
           <AnimatePresence mode="wait">
             {activeSection === "dashboard" && (
@@ -294,6 +296,28 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
                 <ScholarshipManagementPage />
               </motion.div>
             )}
+            {activeSection === "guidance" && (
+              <motion.div
+                key="guidance"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <GuidanceManagementPage />
+              </motion.div>
+            )}
+            {activeSection === "calendar" && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <AdminCalendarManagementPage />
+              </motion.div>
+            )}
             {activeSection === "analytics" && (
               <motion.div
                 key="analytics"
@@ -329,10 +353,3 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
     </div>
   );
 }
-
-
-
-
-
-
-

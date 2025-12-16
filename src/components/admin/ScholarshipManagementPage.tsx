@@ -191,7 +191,7 @@ export function ScholarshipManagementPage() {
     try {
       setUploading(true);
       console.log("Uploading image:", file.name);
-      const response = await adminService.uploadImage(file);
+      const response = await adminService.uploadFile(file, "image");
       console.log("Upload response:", response.data);
       if (response.data && response.data.data && response.data.data.url) {
         const imageUrl = response.data.data.url;

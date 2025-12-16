@@ -129,10 +129,10 @@ export const adminService = {
         return axiosClient.delete(`/scholarships/${id}`);
     },
 
-    uploadImage: async (file: File) => {
+    uploadFile: async (file: File, type: "image" | "video" | "document" = "image") => {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("type", "image"); // Backend only accepts "image", "document", or "profile"
+        formData.append("type", type);
         // Using local upload endpoint as per request for dev/local
         return axiosClient.post<{ status: "success", data: { url: string } }>(`/uploads/local`, formData, {
             headers: {

@@ -1,12 +1,30 @@
-
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import {
   ArrowLeft, Check, ExternalLink, MapPin,
-  GraduationCap, DollarSign, Clock, Award
+  GraduationCap, DollarSign, Clock, Award, Calendar as CalendarIcon
 } from 'lucide-react';
 import { Scholarship } from '@/types/scholarship';
 import { getImageUrl } from '@/shared/lib/imageUtils';
+import { toast } from 'sonner';
+import { calendarService } from '@/services/calendarService';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface ScholarshipPageProps {
   scholarship: Scholarship;
@@ -14,16 +32,49 @@ interface ScholarshipPageProps {
 }
 
 export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPageProps) {
-  console.log("Scholarship Detail Data:", scholarship);
   // Use requirements from the scholarship object, falling back to empty list if undefined
   const requirements = scholarship.requirements || [];
 
   // Calculate display values
   const daysLeft = scholarship.deadline ? Math.ceil((new Date(scholarship.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
+  // Calendar State
+  const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
+  const [reminderDate, setReminderDate] = useState(scholarship.deadline ? new Date(scholarship.deadline).toISOString().split('T')[0] : "");
+  const [reminderType, setReminderType] = useState("email");
+  const [reminderNote, setReminderNote] = useState(`Reminder for ${scholarship.title}`);
+
   const handleApply = () => {
     if (scholarship.university?.website) {
       window.open(scholarship.university.website, '_blank');
+    }
+  };
+
+  const handleAddToCalendar = async () => {
+    try {
+      if (!reminderDate) {
+        toast.error("Please select a date for the reminder");
+        return;
+      }
+
+      await calendarService.createEvent({
+        title: `Deadline: ${scholarship.title}`,
+        date: new Date(reminderDate),
+        type: 'deadline',
+        scholarshipId: scholarship._id, // Assumes scholarship object has _id
+        reminderPreferences: {
+          email: reminderType === 'email' || reminderType === 'both',
+          push: reminderType === 'push' || reminderType === 'both',
+          reminderDate: new Date(reminderDate)
+        },
+        note: reminderNote
+      });
+
+      toast.success("Added to your calendar!");
+      setReminderDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add to calendar", error);
+      toast.error("Failed to add to calendar");
     }
   };
 
@@ -36,13 +87,7 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
             src={getImageUrl(scholarship.imageUrl)}
             alt={scholarship.title}
             className="w-full h-full object-cover"
-            onLoad={() => {
-              console.log(`✅ Detail page image loaded for "${scholarship.title}":`, getImageUrl(scholarship.imageUrl));
-            }}
             onError={(e) => {
-              console.error(`❌ Detail page image failed for "${scholarship.title}"`);
-              console.error("  Original imageUrl:", scholarship.imageUrl);
-              console.error("  Resolved URL:", getImageUrl(scholarship.imageUrl));
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}
@@ -61,8 +106,8 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
           <Badge className="bg-blue-600 hover:bg-blue-700 mb-2 border-none text-white">
             {scholarship.status === 'open' ? 'Accepting Applications' : scholarship.status}
           </Badge>
-          <h1 className="text-3xl md:text-5xl font-bold mb-2 text-black">{scholarship.title}</h1>
-          <div className="flex items-center gap-2 text-gray-700">
+          <h1 className="text-3xl md:text-5xl font-bold mb-2 text-white">{scholarship.title}</h1>
+          <div className="flex items-center gap-2 text-white/90">
             <span className="font-semibold">{scholarship.university?.name}</span>
             <span>•</span>
             <span>{scholarship.country}</span>
@@ -159,6 +204,16 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
                   Apply Now
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full h-12 text-lg"
+                  onClick={() => setReminderDialogOpen(true)}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Add to Calendar
+                </Button>
+
                 <Button
                   variant="outline"
                   className="w-full h-12 text-lg"
@@ -186,6 +241,63 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
           </div>
         </div>
       </div>
+
+      {/* Add Reminder Dialog */}
+      <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add to Calendar</DialogTitle>
+            <DialogDescription>
+              Set a reminder for {scholarship.title}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="text-sm mb-2 block font-medium">Deadline / Reminder Date</label>
+              <Input
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm mb-2 block font-medium">Notification Type</label>
+              <Select value={reminderType} onValueChange={setReminderType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="push">Push Notification</SelectItem>
+                  <SelectItem value="both">Both</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm mb-2 block font-medium">Note</label>
+              <Textarea
+                rows={3}
+                value={reminderNote}
+                onChange={(e) => setReminderNote(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setReminderDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                style={{ backgroundColor: "#007BFF" }}
+                onClick={handleAddToCalendar}
+              >
+                Save to Calendar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
