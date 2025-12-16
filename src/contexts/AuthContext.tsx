@@ -18,6 +18,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   profile?: UserProfile;
+  bookmarks?: string[];
 }
 
 interface AuthResponse {
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile: {
         educationLevel: "bachelor",
       },
+      bookmarks: [],
     }),
     []
   );
@@ -100,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: apiUser.role as UserRole,
           avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
           profile: apiUser.profile,
+          bookmarks: apiUser.bookmarks || [],
         };
         setUser(user);
         persistUser(user);
@@ -145,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: apiUser.role as UserRole,
         avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
         profile: apiUser.profile,
+        bookmarks: apiUser.bookmarks || [],
       };
 
       setAuthTokens({ accessToken, refreshToken });
@@ -189,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: apiUser.role as UserRole,
           avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
           profile: apiUser.profile,
+          bookmarks: apiUser.bookmarks || [],
         };
         setUser(user);
         persistUser(user);

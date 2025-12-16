@@ -25,6 +25,11 @@ export const scholarshipService = {
         return axiosClient.get<ScholarshipsResponse>(`/scholarships`, { params });
     },
 
+    getRecommendations: async (limit = 5) => {
+        const response = await axiosClient.get<{ status: string; data: { scholarships: any[] } }>(`/scholarships/recommendations`, { params: { limit } });
+        return response.data;
+    },
+
     getScholarshipById: async (id: string) => {
         return axiosClient.get(`/scholarships/${id}`);
     },
