@@ -120,6 +120,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hydrateUser();
   }, [hydrateUser]);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      persistUser(null);
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
+
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);

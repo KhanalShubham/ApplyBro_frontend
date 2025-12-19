@@ -42,28 +42,32 @@ function DashboardRoute() {
   return <Dashboard onLogout={logout} userName={user.name} />;
 }
 
+import { ThemeProvider } from "./components/theme-provider";
+
 function App() {
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signup/success" element={<SuccessScreen />} />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup/success" element={<SuccessScreen />} />
 
-        <Route element={<ProtectedRoute roles={["student", "admin"]} />}>
-          <Route path="/dashboard" element={<DashboardRoute />} />
-        </Route>
+          <Route element={<ProtectedRoute roles={["student", "admin"]} />}>
+            <Route path="/dashboard" element={<DashboardRoute />} />
+          </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Toaster />
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

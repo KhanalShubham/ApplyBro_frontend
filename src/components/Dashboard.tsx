@@ -60,6 +60,7 @@ import { communityService } from "../services/communityService";
 import { calendarService } from "../services/calendarService";
 import { toast } from "sonner";
 import { getImageUrl } from "../shared/lib/imageUtils";
+import { ModeToggle } from "./mode-toggle";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -185,13 +186,13 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen bg-background text-foreground"
       style={{
-        background: "linear-gradient(135deg, #E9F2FF 0%, #ffffff 100%)",
+        background: "var(--background)",
       }}
     >
       {/* Top Navigation Bar */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
@@ -205,17 +206,17 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
               <span className="text-xl block" style={{ color: "#007BFF" }}>
                 ApplyBro
               </span>
-              <span className="text-xs text-gray-500 -mt-1 block">Empowering Students</span>
+              <span className="text-xs text-muted-foreground -mt-1 block">Empowering Students</span>
             </div>
           </div>
 
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl mx-4 hidden md:block">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search scholarships, posts, or colleges…"
-                className="pl-10 bg-gray-50 border-gray-200"
+                className="pl-10 bg-muted/50 border-input"
               />
             </div>
           </div>
@@ -224,15 +225,17 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}
             <button
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <ChevronLeft className={`h-5 w-5 text-gray-600 transition-transform ${mobileMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronLeft className={`h-5 w-5 text-muted-foreground transition-transform ${mobileMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
+            <ModeToggle />
+
             {/* Notifications */}
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors" onClick={() => setActiveSection('calendar')}>
-              <Bell className="h-5 w-5 text-gray-600" />
+            <button className="relative p-2 hover:bg-accent rounded-lg transition-colors" onClick={() => setActiveSection('calendar')}>
+              <Bell className="h-5 w-5 text-muted-foreground" />
               {notificationCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {notificationCount}
@@ -243,9 +246,9 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                <button className="flex items-center gap-2 hover:bg-accent rounded-lg p-1 transition-colors">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
+                    <AvatarImage src={getImageUrl(user?.avatar) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
                     <AvatarFallback>{displayName[0]}</AvatarFallback>
                   </Avatar>
                 </button>
@@ -288,7 +291,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
         />
 
         <aside
-          className={`fixed left-0 top-16 bottom-0 bg-white/80 backdrop-blur-lg border-r border-gray-200 transition-all duration-300 z-30 
+          className={`fixed left-0 top-16 bottom-0 bg-background/80 backdrop-blur-lg border-r border-border transition-all duration-300 z-30 
             ${sidebarCollapsed ? "w-16" : "w-64"}
             ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
           `}
@@ -301,8 +304,8 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                     key={item.id}
                     onClick={() => handleSectionChange(item.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activeSection === item.id
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
                   >
                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -315,15 +318,15 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
             </ScrollArea>
 
             {/* Collapse Toggle */}
-            <div className="p-2 border-t border-gray-200">
+            <div className="p-2 border-t border-border">
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center p-2 hover:bg-accent rounded-lg transition-colors"
               >
                 {sidebarCollapsed ? (
-                  <ChevronRight className="h-5 w-5 text-gray-600" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <ChevronLeft className="h-5 w-5 text-gray-600" />
+                  <ChevronLeft className="h-5 w-5 text-muted-foreground" />
                 )}
               </button>
             </div>
@@ -512,8 +515,8 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                               <div
                                 key={index}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 whitespace-nowrap ${achievement.unlocked
-                                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                                    : "bg-gray-50 border-gray-200 text-gray-400"
+                                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                                  : "bg-gray-50 border-border text-muted-foreground"
                                   }`}
                               >
                                 <achievement.icon className="h-4 w-4" />
@@ -543,7 +546,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                             </Button>
                           </div>
                           {recommendedScholarships.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed text-gray-500">
+                            <div className="text-center py-8 bg-muted/50 rounded-xl border border-dashed text-muted-foreground">
                               No recommendations yet. Complete your profile to get matched!
                             </div>
                           ) : (
@@ -556,7 +559,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                     transition={{ type: "spring", stiffness: 300 }}
                                     className="min-w-[320px]"
                                   >
-                                    <Card className="hover:shadow-2xl transition-all duration-300 bg-white border-0 shadow-md hover:border-blue-300/50 overflow-hidden group cursor-pointer h-full">
+                                    <Card className="hover:shadow-2xl transition-all duration-300 bg-card border-0 shadow-md hover:border-blue-300/50 overflow-hidden group cursor-pointer h-full">
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-purple-50/0 group-hover:from-blue-50/50 group-hover:to-purple-50/30 transition-all duration-300" />
                                       <CardContent className="p-6 relative z-10 flex flex-col h-full">
                                         <div className="flex items-start justify-between mb-4">
@@ -567,12 +570,12 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                             {scholarship.status}
                                           </Badge>
                                         </div>
-                                        <h3 className="text-lg font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">{scholarship.title}</h3>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap mt-auto">
+                                        <h3 className="text-lg font-bold mb-3 text-foreground group-hover:text-blue-600 transition-colors line-clamp-2">{scholarship.title}</h3>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 flex-wrap mt-auto">
                                           <Badge variant="outline" className="font-medium">{scholarship.level}</Badge>
-                                          <span className="text-gray-400">•</span>
+                                          <span className="text-muted-foreground">•</span>
                                           <div className="flex items-center gap-1.5">
-                                            <Clock className="h-3.5 w-3.5 text-gray-500" />
+                                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                                             <span className="font-medium">{new Date(scholarship.deadline).toLocaleDateString()}</span>
                                           </div>
                                         </div>
@@ -599,11 +602,11 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.3 }}
                         >
-                          <h2 className="mb-6 text-xl font-bold text-gray-900">📁 Recent Documents</h2>
+                          <h2 className="mb-6 text-xl font-bold text-foreground">📁 Recent Documents</h2>
                           <div className="grid md:grid-cols-2 gap-6">
                             {recentDocuments.length === 0 ? (
-                              <div className="col-span-2 text-center py-6 bg-gray-50 rounded-xl border border-dashed">
-                                <p className="text-gray-500 mb-2">No documents uploaded yet.</p>
+                              <div className="col-span-2 text-center py-6 bg-muted/50 rounded-xl border border-dashed">
+                                <p className="text-muted-foreground mb-2">No documents uploaded yet.</p>
                                 <Button variant="outline" size="sm" onClick={() => setActiveSection("documents")}>Upload Now</Button>
                               </div>
                             ) : (
@@ -634,8 +637,8 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                           </Badge>
                                         </div>
                                       </div>
-                                      <h3 className="text-lg font-bold mb-2 text-gray-900">{doc.name}</h3>
-                                      <p className="text-sm text-gray-600 font-medium">
+                                      <h3 className="text-lg font-bold mb-2 text-foreground">{doc.name}</h3>
+                                      <p className="text-sm text-muted-foreground font-medium">
                                         Uploaded on {new Date(doc.uploadedAt).toLocaleDateString()}
                                       </p>
                                     </CardContent>
@@ -676,11 +679,11 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                     </Avatar>
                                     <div>
                                       <p className="text-sm font-semibold">{post.author?.name}</p>
-                                      <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+                                      <p className="text-xs text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</p>
                                     </div>
                                   </div>
                                   <h3 className="font-bold text-md mb-1">{post.title}</h3>
-                                  <p className="text-sm text-gray-600 line-clamp-2">{post.content}</p>
+                                  <p className="text-sm text-muted-foreground line-clamp-2">{post.content}</p>
                                 </CardContent>
                               </Card>
                             ))}
@@ -695,9 +698,9 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                 </Avatar>
                                 <button
                                   onClick={() => setActiveSection("community")}
-                                  className="flex-1 text-left px-4 py-3 bg-white rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 transition-all hover:shadow-md cursor-pointer"
+                                  className="flex-1 text-left px-4 py-3 bg-card rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 transition-all hover:shadow-md cursor-pointer"
                                 >
-                                  <p className="text-gray-500">Share your experience, ask questions, or help others...</p>
+                                  <p className="text-muted-foreground">Share your experience, ask questions, or help others...</p>
                                 </button>
                               </div>
                             </CardContent>
@@ -721,12 +724,12 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                 <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${event.type === 'deadline' ? 'bg-red-500' : 'bg-blue-500'}`} />
                                 <div>
                                   <p className="text-sm font-medium">{event.title}</p>
-                                  <p className="text-xs text-gray-500">{new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                                  <p className="text-xs text-muted-foreground">{new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
                                 </div>
                               </div>
                             ))}
                             {upcomingEvents.length === 0 && (
-                              <p className="text-sm text-gray-500 text-center py-2">No upcoming events.</p>
+                              <p className="text-sm text-muted-foreground text-center py-2">No upcoming events.</p>
                             )}
                             <Button variant="outline" size="sm" className="w-full" onClick={() => setActiveSection("calendar")}>
                               View Calendar

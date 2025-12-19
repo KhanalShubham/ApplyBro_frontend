@@ -101,6 +101,7 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError as AxiosError, null);
         clearAuthTokens();
+        window.dispatchEvent(new Event("auth:unauthorized"));
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

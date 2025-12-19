@@ -23,6 +23,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { ModeToggle } from "./mode-toggle";
 
 interface LandingPageProps {
   onSignUpClick?: () => void;
@@ -167,9 +168,9 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md" : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-background shadow-md" : "bg-transparent"
           }`}
       >
         <div className="container mx-auto px-4">
@@ -188,7 +189,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                  className="text-muted-foreground hover:text-blue-600 transition-colors"
                 >
                   {item.label}
                 </button>
@@ -196,6 +197,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
+              <ModeToggle />
               <Button variant="ghost" onClick={handleLoginNavigation}>
                 Login
               </Button>
@@ -213,13 +215,13 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:hidden bg-white border-t py-4 space-y-3"
+              className="md:hidden bg-background border-t py-4 space-y-3"
             >
               {navLinks.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-50"
+                  className="block w-full text-left px-4 py-2 hover:bg-muted/50"
                 >
                   {item.label}
                 </button>
@@ -240,13 +242,15 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
       <section
         id="home"
         className="pt-32 pb-20 px-4"
-        style={{ background: "linear-gradient(135deg, #E9F2FF 0%, #ffffff 100%)" }}
+        style={{
+          background: "var(--background)",
+        }}
       >
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
               <h1 className="mb-6">Find Scholarships That Match You</h1>
-              <p className="text-gray-600 text-lg mb-8">
+              <p className="text-muted-foreground text-lg mb-8">
                 Upload your academic details and get personalized scholarship recommendations worldwide. Your dream education is just a click away.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -261,15 +265,15 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
               <div className="grid grid-cols-3 gap-4 mt-12">
                 <div>
                   <div className="text-2xl text-blue-600">10,000+</div>
-                  <div className="text-sm text-gray-600">Students</div>
+                  <div className="text-sm text-muted-foreground">Students</div>
                 </div>
                 <div>
                   <div className="text-2xl text-blue-600">5,000+</div>
-                  <div className="text-sm text-gray-600">Scholarships</div>
+                  <div className="text-sm text-muted-foreground">Scholarships</div>
                 </div>
                 <div>
                   <div className="text-2xl text-blue-600">50+</div>
-                  <div className="text-sm text-gray-600">Countries</div>
+                  <div className="text-sm text-muted-foreground">Countries</div>
                 </div>
               </div>
             </motion.div>
@@ -288,14 +292,14 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
               <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-lg"
+                className="absolute -top-6 -left-6 bg-background p-4 rounded-xl shadow-lg"
               >
                 <BookOpen className="h-8 w-8 text-blue-600" />
               </motion.div>
               <motion.div
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg"
+                className="absolute -bottom-6 -right-6 bg-background p-4 rounded-xl shadow-lg"
               >
                 <Globe className="h-8 w-8 text-blue-600" />
               </motion.div>
@@ -304,11 +308,11 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="mb-4">How It Works</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Three simple steps to discover scholarships tailored for you
             </p>
           </div>
@@ -354,7 +358,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                       </div>
                     </div>
                     <h3 className="mb-2">{item.title}</h3>
-                    <p className="text-gray-600 text-sm">{item.description}</p>
+                    <p className="text-muted-foreground text-sm">{item.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -363,11 +367,11 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
         </div>
       </section>
 
-      <section id="scholarships" className="py-20 px-4" style={{ backgroundColor: "#E9F2FF" }}>
+      <section id="scholarships" className="py-20 px-4 bg-blue-50 dark:bg-blue-900/20">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="mb-4">Top Opportunities for You</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Discover scholarships from around the world
             </p>
           </div>
@@ -390,10 +394,10 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                       >
                         {scholarship.country}
                       </Badge>
-                      <span className="text-xs text-gray-500">{scholarship.deadline}</span>
+                      <span className="text-xs text-muted-foreground">{scholarship.deadline}</span>
                     </div>
                     <h3 className="mb-2">{scholarship.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{scholarship.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{scholarship.description}</p>
                     <div className="text-lg text-blue-600 mb-4">{scholarship.amount}</div>
                     <Button variant="outline" className="w-full hover:bg-blue-600 hover:text-white" onClick={handleSignUpNavigation}>
                       Apply Now
@@ -412,11 +416,11 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
         </div>
       </section>
 
-      <section id="guidance" className="py-20 px-4 bg-white">
+      <section id="guidance" className="py-20 px-4 bg-background">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="mb-4">Learn How to Win Scholarships</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Expert guidance and resources to boost your application
             </p>
           </div>
@@ -442,7 +446,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                         className="w-full h-48 object-cover rounded-t-lg"
                       />
                       <div className="p-4">
-                        <p className="text-xs text-gray-500 mb-2">{article.time}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{article.time}</p>
                         <h3 className="text-lg">{article.title}</h3>
                       </div>
                     </CardContent>
@@ -478,13 +482,12 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
 
       <section
         id="community"
-        className="py-20 px-4"
-        style={{ backgroundColor: "#E9F2FF" }}
+        className="py-20 px-4 bg-blue-50 dark:bg-blue-900/20"
       >
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="mb-4">Hear from Real Students</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Join thousands of students who found their dream scholarships
             </p>
           </div>
@@ -506,10 +509,10 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                       </Avatar>
                       <div>
                         <div>{testimonial.name}</div>
-                        <div className="text-sm text-gray-500">{testimonial.country}</div>
+                        <div className="text-sm text-muted-foreground">{testimonial.country}</div>
                       </div>
                     </div>
-                    <p className="text-gray-600 text-sm italic">"{testimonial.quote}"</p>
+                    <p className="text-muted-foreground text-sm italic">"{testimonial.quote}"</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -524,7 +527,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -543,7 +546,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
             <Button
               size="lg"
               variant="secondary"
-              className="bg-white text-blue-600 hover:bg-gray-100"
+              className="bg-background text-blue-600 hover:bg-gray-100"
               onClick={handleSignUpNavigation}
             >
               Create My Account Now

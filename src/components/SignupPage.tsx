@@ -160,34 +160,33 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#E9F2FF" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-6xl grid gap-8 items-center lg:grid-cols-2">
         {/* Left Section - Registration Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 w-full max-w-md mx-auto lg:mx-0">
+        <div className="bg-card rounded-2xl shadow-lg p-8 lg:p-12 w-full max-w-md mx-auto lg:mx-0">
           {/* Logo and Title */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "#007BFF" }}
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/30"
               >
-                <GraduationCap className="h-7 w-7 text-white" />
+                <GraduationCap className="h-7 w-7 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <span className="text-2xl font-bold block" style={{ color: "#007BFF" }}>
                   ApplyBro
                 </span>
-                <span className="text-xs text-gray-500 -mt-1 block">Empowering Students</span>
+                <span className="text-xs text-muted-foreground -mt-1 block">Empowering Students</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">Register</h1>
-            <p className="text-gray-600 text-sm">
+            <h1 className="text-3xl font-bold mb-2 text-foreground">Register</h1>
+            <p className="text-muted-foreground text-sm">
               Sign in here and log in to access feature of ApplyBro.
             </p>
           </div>
 
           {Object.keys(errors).length > 0 && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
@@ -205,7 +204,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Full Name */}
             <div>
-              <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700 mb-2 block">
+              <Label htmlFor="fullName" className="text-sm font-semibold text-muted-foreground mb-2 block">
                 Full name
               </Label>
               <Input
@@ -219,7 +218,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                     setErrors({ ...errors, fullName: "" });
                   }
                 }}
-                className={`h-12 ${errors.fullName ? "border-red-500" : "border-gray-300"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                className={`h-12 ${errors.fullName ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
                 disabled={isLoading}
               />
               {errors.fullName && (
@@ -229,11 +228,11 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
 
             {/* Email */}
             <div>
-              <Label htmlFor="email" className="text-sm font-semibold text-gray-700 mb-2 block">
+              <Label htmlFor="email" className="text-sm font-semibold text-muted-foreground mb-2 block">
                 Email address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -245,7 +244,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                       setErrors({ ...errors, email: "" });
                     }
                   }}
-                  className={`h-12 pl-10 ${errors.email ? "border-red-500" : "border-gray-300"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  className={`h-12 pl-10 ${errors.email ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
                   disabled={isLoading}
                 />
               </div>
@@ -256,7 +255,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
 
             {/* Country */}
             <div>
-              <Label htmlFor="country" className="text-sm font-semibold text-gray-700 mb-2 block">
+              <Label htmlFor="country" className="text-sm font-semibold text-muted-foreground mb-2 block">
                 Select your country
               </Label>
               <Select
@@ -271,7 +270,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               >
                 <SelectTrigger
                   id="country"
-                  className={`h-12 ${errors.country ? "border-red-500" : "border-gray-300"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  className={`h-12 ${errors.country ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
                 >
                   <SelectValue placeholder="Select your country" />
                 </SelectTrigger>
@@ -290,11 +289,11 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
 
             {/* Password */}
             <div>
-              <Label htmlFor="password" className="text-sm font-semibold text-gray-700 mb-2 block">
+              <Label htmlFor="password" className="text-sm font-semibold text-muted-foreground mb-2 block">
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -306,13 +305,13 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                       setErrors({ ...errors, password: "" });
                     }
                   }}
-                  className={`h-12 pl-10 pr-24 ${errors.password ? "border-red-500" : "border-gray-300"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  className={`h-12 pl-10 pr-24 ${errors.password ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground flex items-center gap-1 text-sm"
                 >
                   {showPassword ? (
                     <>
@@ -333,7 +332,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               {formData.password && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-gray-600">Password strength:</span>
+                    <span className="text-muted-foreground">Password strength:</span>
                     <span className="font-semibold" style={{ color: passwordStrength.color }}>
                       {passwordStrength.label}
                     </span>
@@ -349,18 +348,18 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   </div>
                 </div>
               )}
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Use 8 or more characters with a mix of letters, numbers & symbols.
               </p>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700 mb-2 block">
+              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-muted-foreground mb-2 block">
                 Confirm Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
@@ -372,13 +371,13 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                       setErrors({ ...errors, confirmPassword: "" });
                     }
                   }}
-                  className={`h-12 pl-10 pr-24 ${errors.confirmPassword ? "border-red-500" : "border-gray-300"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  className={`h-12 pl-10 pr-24 ${errors.confirmPassword ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground flex items-center gap-1 text-sm"
                 >
                   {showConfirmPassword ? (
                     <>
@@ -414,7 +413,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               />
               <label
                 htmlFor="agreeToTerms"
-                className="text-sm text-gray-700 cursor-pointer leading-relaxed"
+                className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
               >
                 Agree to our{" "}
                 <a href="#" className="text-blue-600 hover:underline font-semibold">
@@ -450,7 +449,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-sm text-gray-600 mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account?{" "}
             <a
               href="#"
@@ -473,13 +472,13 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               alt="Students celebrating"
               className="rounded-2xl shadow-2xl w-full max-w-lg"
             />
-            <div className="absolute -bottom-4 -right-4 bg-white p-4 rounded-xl shadow-lg border-2 border-blue-100">
+            <div className="absolute -bottom-4 -right-4 bg-card p-4 rounded-xl shadow-lg border-2 border-blue-100">
               <p className="text-sm">
                 <span className="text-blue-600">🚀 5,000+</span> new students joined this year
               </p>
             </div>
           </div>
-          <div className="mt-6 text-center text-gray-700 max-w-md">
+          <div className="mt-6 text-center text-muted-foreground max-w-md">
             <h2 className="text-2xl font-semibold mb-2" style={{ color: "#007BFF" }}>
               Start your scholarship journey today
             </h2>
