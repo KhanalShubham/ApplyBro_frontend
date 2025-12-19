@@ -51,6 +51,7 @@ import { GuidancePage } from "./pages/GuidancePage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { RecommendationsPage } from "./RecommendationsPage";
 import { Loader } from "./ui/loader";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -61,6 +62,7 @@ import { calendarService } from "../services/calendarService";
 import { toast } from "sonner";
 import { getImageUrl } from "../shared/lib/imageUtils";
 import { ModeToggle } from "./mode-toggle";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -70,6 +72,8 @@ interface DashboardProps {
 export function Dashboard({ onLogout, userName }: DashboardProps) {
   const { user, logout } = useAuth();
   const displayName = userName || user?.name || "User";
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -170,6 +174,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
   const sidebarItems = [
     { id: "dashboard", icon: Home, label: "Dashboard" },
     { id: "scholarships", icon: GraduationCap, label: "Scholarships" },
+    { id: "recommendations", icon: Target, label: "Recommendations" },
     { id: "documents", icon: Folder, label: "My Documents" },
     { id: "saved", icon: Bookmark, label: "Saved Items" },
     { id: "guidance", icon: BookOpen, label: "Guidance" },
@@ -265,7 +270,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={() => setShowLogoutConfirm(true)}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
@@ -349,6 +354,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                 transition={{ duration: 0.2 }}
               >
                 {activeSection === "scholarships" && <ScholarshipsPage />}
+                {activeSection === "recommendations" && <RecommendationsPage onSectionChange={handleSectionChange} />}
                 {activeSection === "documents" && <DocumentsPage />}
                 {activeSection === "saved" && <SavedItemsPage />}
                 {activeSection === "guidance" && <GuidancePage />}
@@ -745,6 +751,18 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        description="Are you sure you want to logout? You'll need to sign in again to access your dashboard."
+        confirmText="Logout"
+        cancelText="Stay"
+        variant="default"
+      />
     </div>
   );
 }

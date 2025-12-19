@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { Loader } from "../ui/loader";
 import { formatFileSize } from "@/shared/lib/fileValidation";
 import { formatDeadline } from "@/shared/lib/dateUtils";
+import { ConfirmDialog } from "../ConfirmDialog";
 
 export function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -34,6 +35,7 @@ export function DocumentsPage() {
   const [matches, setMatches] = useState<MatchedScholarship[]>([]);
   const [isLoadingMatches, setIsLoadingMatches] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; docId: string | null }>({ open: false, docId: null });
 
   const fetchDocuments = async () => {
     try {
@@ -53,14 +55,11 @@ export function DocumentsPage() {
   }, []);
 
   const handleDelete = async (docId: string) => {
-    if (!confirm("Are you sure you want to delete this document?")) {
-      return;
-    }
-
     try {
       await documentService.deleteDocument(docId);
-      toast.success("Document deleted");
+      toast.success("Document deleted successfully");
       fetchDocuments();
+      setDeleteConfirm({ open: false, docId: null });
     } catch (error) {
       console.error("Failed to delete document", error);
       toast.error("Failed to delete document");
@@ -301,7 +300,7 @@ export function DocumentsPage() {
                               variant="outline"
                               size="sm"
                               className="text-red-600 hover:bg-red-50"
-                              onClick={() => handleDelete(doc._id)}
+                              onClick={() => setDeleteConfirm({ open: true, docId: doc._id })}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
@@ -384,6 +383,18 @@ export function DocumentsPage() {
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}
         onUploadSuccess={fetchDocuments}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ open, docId: null })}
+        onConfirm={() => deleteConfirm.docId && handleDelete(deleteConfirm.docId)}
+        title="Delete Document"
+        description="Are you sure you want to delete this document? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
       />
     </div>
   );

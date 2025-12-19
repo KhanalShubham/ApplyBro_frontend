@@ -47,6 +47,7 @@ import { AdminAnalyticsPage } from "./admin/AdminAnalyticsPage";
 import { AdminDashboardHome } from "./admin/AdminDashboardHome";
 import { GuidanceManagementPage } from "./admin/GuidanceManagementPage";
 import { AdminCalendarManagementPage } from "./admin/AdminCalendarManagementPage";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -58,6 +59,7 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [notificationCount, setNotificationCount] = useState(5);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
@@ -156,7 +158,7 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout}>
+                <DropdownMenuItem onClick={() => setShowLogoutConfirm(true)}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
@@ -350,6 +352,18 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={() => onLogout?.()}
+        title="Logout Confirmation"
+        description="Are you sure you want to logout from the admin panel?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="default"
+      />
     </div>
   );
 }

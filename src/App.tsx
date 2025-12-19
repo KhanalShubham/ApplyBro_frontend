@@ -6,6 +6,7 @@ import { LoginPage } from "./components/LoginPage";
 import { LandingPage } from "./components/LandingPage";
 import { Dashboard } from "./components/Dashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { RecommendationsPage } from "./components/RecommendationsPage";
 import { useAuth } from "./contexts/AuthContext";
 import { Loader } from "./components/ui/loader";
 import { Toaster } from "./components/ui/sonner";
@@ -61,6 +62,7 @@ function App() {
 
           <Route element={<ProtectedRoute roles={["student", "admin"]} />}>
             <Route path="/dashboard" element={<DashboardRoute />} />
+            <Route path="/recommendations" element={<RecommendationsPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -72,3 +74,4 @@ function App() {
 }
 
 export default App;
+
