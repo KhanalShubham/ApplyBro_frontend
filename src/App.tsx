@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { SignupPage } from "./components/SignupPage";
 import { SuccessScreen } from "./components/SuccessScreen";
 import { LoginPage } from "./components/LoginPage";
@@ -7,28 +7,17 @@ import { LandingPage } from "./components/LandingPage";
 import { Dashboard } from "./components/Dashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { RecommendationsPage } from "./components/RecommendationsPage";
+import { UnauthorizedPage } from "./components/pages/UnauthorizedPage";
+import { NotFoundPage } from "./components/pages/NotFoundPage";
+import { ProtectedRoute } from "./components/routes/ProtectedRoute";
+import { PublicRoute } from "./components/routes/PublicRoute";
 import { useAuth } from "./contexts/AuthContext";
-import { Loader } from "./components/ui/loader";
 import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "./components/theme-provider";
 
-function ProtectedRoute({ roles }: { roles?: string[] }) {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <Loader className="min-h-screen bg-white" />;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
-}
-
+/**
+ * DashboardRoute - Determines which dashboard to show based on user role
+ */
 function DashboardRoute() {
   const { user, logout } = useAuth();
 
@@ -36,14 +25,14 @@ function DashboardRoute() {
     return null;
   }
 
+  // Admin users see AdminDashboard
   if (user.role === "admin") {
     return <AdminDashboard onLogout={logout} userName={user.name} />;
   }
 
+  // Regular users see standard Dashboard
   return <Dashboard onLogout={logout} userName={user.name} />;
 }
-
-import { ThemeProvider } from "./components/theme-provider";
 
 function App() {
   return (
@@ -55,18 +44,91 @@ function App() {
         }}
       >
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/signup/success" element={<SuccessScreen />} />
+          {/* ==================== PUBLIC ROUTES ==================== */}
+          {/* Accessible to everyone, authenticated users redirected from login/signup */}
 
-          <Route element={<ProtectedRoute roles={["student", "admin"]} />}>
-            <Route path="/dashboard" element={<DashboardRoute />} />
-            <Route path="/recommendations" element={<RecommendationsPage />} />
-          </Route>
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute redirectIfAuthenticated={true}>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute redirectIfAuthenticated={true}>
+                <SignupPage />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/signup/success"
+            element={
+              <PublicRoute>
+                <SuccessScreen />
+              </PublicRoute>
+            }
+          />
+
+          {/* ==================== USER PROTECTED ROUTES ==================== */}
+          {/* Require authentication - accessible to both students and admins */}
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requireAuth={true}>
+                <DashboardRoute />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/recommendations"
+            element={
+              <ProtectedRoute requireAuth={true}>
+                <RecommendationsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Note: Dashboard contains all user sections (scholarships, documents, etc.) */}
+          {/* These are rendered within Dashboard based on active section */}
+
+          {/* ==================== ADMIN PROTECTED ROUTES ==================== */}
+          {/* Require admin role - regular users will be redirected to /unauthorized */}
+
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute requireAuth={true} requireAdmin={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ==================== ERROR ROUTES ==================== */}
+
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="/404" element={<NotFoundPage />} />
+
+          {/* Catch-all route - redirect to 404 */}
+          <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
+
+        {/* Global toast notifications */}
         <Toaster />
       </BrowserRouter>
     </ThemeProvider>
@@ -74,4 +136,3 @@ function App() {
 }
 
 export default App;
-

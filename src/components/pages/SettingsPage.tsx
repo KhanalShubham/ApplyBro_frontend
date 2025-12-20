@@ -40,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { userService } from "../../services/userService";
 import { getImageUrl } from "../../shared/lib/imageUtils";
 import { useEffect, useRef } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const translations = {
   english: {
@@ -110,6 +111,7 @@ const translations = {
 };
 
 export function SettingsPage() {
+  const { refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<
@@ -199,6 +201,10 @@ export function SettingsPage() {
       const { data } = await userService.uploadAvatar(file);
       setAvatarUrl(data.url);
       await userService.updateProfile({ profile: { avatar: data.url } });
+
+      // Refresh user context to update avatar everywhere in the app
+      await refreshUser();
+
       toast.success("Profile photo updated!");
     } catch (error) {
       toast.error("Failed to upload photo");
