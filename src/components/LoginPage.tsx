@@ -2,6 +2,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
+import applyBroLandingImage from "@/assets/applybrolanding.png";
 import { Separator } from "./ui/separator";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -281,8 +282,8 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
         {/* Illustration Section */}
         <div className="hidden lg:flex flex-col justify-center items-center">
           <div className="relative">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1620829813573-7c9e1877706f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwc3R1ZHlpbmclMjBsYXB0b3B8ZW58MXx8fHwxNzYyMjU4MjY2fDA&ixlib=rb-4.1.0&q=80&w=1080"
+            <img
+              src={applyBroLandingImage}
               alt="Student studying"
               className="rounded-2xl shadow-2xl w-full max-w-lg"
             />

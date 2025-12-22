@@ -1,133 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import applyBroLandingImage from "@/assets/applybrolanding.png";
 import {
   GraduationCap,
   Upload,
   Sparkles,
   Globe,
-  BookOpen,
-  Users,
-  FileText,
-  Video,
   ChevronRight,
   Facebook,
   Instagram,
   Linkedin,
-  Menu,
-  X,
+  MapPin,
+  Calendar,
+  DollarSign,
+  ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
+import { scholarshipService } from "@/services/scholarshipService";
+import type { Scholarship } from "@/types/scholarship";
 
 interface LandingPageProps {
   onSignUpClick?: () => void;
   onLoginClick?: () => void;
 }
 
-const ARTICLES = [
-  {
-    title: "How to Write a Winning Motivation Letter",
-    time: "5 min read",
-    image:
-      "https://images.unsplash.com/photo-1638636241638-aef5120c5153?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzY2hvbGFyc2hpcCUyMGNlcnRpZmljYXRlJTIwc3VjY2Vzc3xlbnwxfHx8fDE3NjIzNjM5MTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    title: "Crafting the Perfect Statement of Purpose",
-    time: "7 min read",
-    image:
-      "https://images.unsplash.com/photo-1760351065294-b069f6bcadc4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50cyUyMHN0dWR5aW5nJTIwdG9nZXRoZXJ8ZW58MXx8fHwxNzYyMjk5MjIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    title: "Top 10 Scholarship Essay Tips",
-    time: "4 min read",
-    image:
-      "https://images.unsplash.com/photo-1608986596619-eb50cc56831f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBsZWFybmluZyUyMGVkdWNhdGlvbnxlbnwxfHx8fDE3NjIzMDMzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    title: "Understanding Scholarship Requirements",
-    time: "6 min read",
-    image:
-      "https://images.unsplash.com/photo-1653250198948-1405af521dbb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwZ3JhZHVhdGlvbiUyMGNlbGVicmF0aW9ufGVufDF8fHx8MTc2MjM2MzkxNXww&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-];
-
-const VIDEOS = [
-  { title: "IELTS Preparation Complete Guide", duration: "45:20" },
-  { title: "Student Visa Application Process", duration: "32:15" },
-  { title: "Interview Tips for Scholarships", duration: "28:40" },
-  { title: "Document Preparation Checklist", duration: "22:30" },
-];
-
 export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = {}) {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [isLoadingScholarships, setIsLoadingScholarships] = useState(true);
 
-  const scholarships = useMemo(
-    () => [
-      {
-        name: "Fulbright Scholarship",
-        country: "🇺🇸 USA",
-        deadline: "Dec 15, 2025",
-        amount: "$50,000",
-        description: "Full funding for master's students",
-      },
-      {
-        name: "DAAD Scholarship",
-        country: "🇩🇪 Germany",
-        deadline: "Nov 30, 2025",
-        amount: "€1,200/month",
-        description: "For engineering & science students",
-      },
-      {
-        name: "Chevening Scholarship",
-        country: "🇬🇧 UK",
-        deadline: "Jan 10, 2026",
-        amount: "Full Coverage",
-        description: "Leadership development program",
-      },
-      {
-        name: "MEXT Scholarship",
-        country: "🇯🇵 Japan",
-        deadline: "Dec 20, 2025",
-        amount: "¥145,000/month",
-        description: "For undergraduate & graduate students",
-      },
-    ],
-    []
-  );
+  // Fetch real scholarships from API
+  useEffect(() => {
+    const fetchScholarships = async () => {
+      try {
+        setIsLoadingScholarships(true);
+        const response = await scholarshipService.getScholarships(1, 4);
+        setScholarships(response.data.data.scholarships || []);
+      } catch (error) {
+        console.error("Failed to fetch scholarships:", error);
+        setScholarships([]);
+      } finally {
+        setIsLoadingScholarships(false);
+      }
+    };
 
-  const testimonials = useMemo(
-    () => [
-      {
-        name: "Priya Sharma",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
-        quote:
-          "ApplyBro helped me find the perfect scholarship to study in Germany. The process was so simple!",
-        country: "🇩🇪 Germany",
-      },
-      {
-        name: "Rajesh Kumar",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rajesh",
-        quote: "I got matched with 5 scholarships I never knew existed. Thank you ApplyBro!",
-        country: "🇦🇺 Australia",
-      },
-      {
-        name: "Anjali Thapa",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anjali",
-        quote:
-          "The document upload feature made my application process 10x easier. Highly recommend!",
-        country: "🇯🇵 Japan",
-      },
-    ],
-    []
-  );
+    fetchScholarships();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleSignUpNavigation = () => {
     if (onSignUpClick) {
@@ -145,270 +77,320 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
     navigate("/login");
   };
 
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setMobileMenuOpen(false);
-    }
-  };
-
-  const navLinks = [
-    { label: "Home", id: "home" },
-    { label: "Scholarships", id: "scholarships" },
-    { label: "Guidance", id: "guidance" },
-    { label: "Community", id: "community" },
-    { label: "About", id: "about" },
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      {/* Sticky Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-background shadow-md" : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+          ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm"
+          : "bg-white dark:bg-gray-900"
           }`}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-6">
+          <nav className="flex items-center justify-between h-16">
+            {/* Left: Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "#007BFF" }}>
-                <GraduationCap className="h-6 w-6 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl" style={{ color: "#007BFF" }}>
-                ApplyBro
-              </span>
+              <span className="text-xl font-semibold text-gray-900 dark:text-white">ApplyBro</span>
             </div>
 
-            <nav className="hidden md:flex items-center gap-6">
-              {navLinks.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className="text-muted-foreground hover:text-blue-600 transition-colors"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
+            {/* Center: Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              <a
+                href="#scholarships"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
+              >
+                Scholarships
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+              </a>
+              <a
+                href="#guidance"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
+              >
+                Guidance
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+              </a>
+              <a
+                href="#about"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
+              >
+                About
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+              </a>
+            </div>
 
-            <div className="hidden md:flex items-center gap-3">
+            {/* Right: Auth Buttons */}
+            <div className="flex items-center gap-3">
               <ModeToggle />
-              <Button variant="ghost" onClick={handleLoginNavigation}>
+              <Button variant="ghost" onClick={handleLoginNavigation} className="text-gray-600 dark:text-gray-300">
                 Login
               </Button>
-              <Button style={{ backgroundColor: "#007BFF" }} onClick={handleSignUpNavigation}>
-                Sign Up
+              <Button
+                onClick={handleSignUpNavigation}
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-md transition-all"
+              >
+                Get Started
               </Button>
             </div>
-
-            <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="md:hidden bg-background border-t py-4 space-y-3"
-            >
-              {navLinks.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className="block w-full text-left px-4 py-2 hover:bg-muted/50"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <div className="px-4 pt-2 space-y-2">
-                <Button variant="outline" className="w-full" onClick={handleLoginNavigation}>
-                  Login
-                </Button>
-                <Button className="w-full" style={{ backgroundColor: "#007BFF" }} onClick={handleSignUpNavigation}>
-                  Sign Up
-                </Button>
-              </div>
-            </motion.div>
-          )}
+          </nav>
         </div>
       </header>
 
-      <section
-        id="home"
-        className="pt-32 pb-20 px-4"
-        style={{
-          background: "var(--background)",
-        }}
-      >
-        <div className="container mx-auto">
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-blue-50/50 to-white dark:from-blue-950/10 dark:to-gray-950">
+        <div className="container mx-auto max-w-6xl">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-              <h1 className="mb-6">Find Scholarships That Match You</h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                Upload your academic details and get personalized scholarship recommendations worldwide. Your dream education is just a click away.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" style={{ backgroundColor: "#007BFF" }} onClick={handleSignUpNavigation}>
-                  Get Started
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button size="lg" variant="outline" onClick={() => scrollToSection("scholarships")}>
-                  Browse Scholarships
-                </Button>
+            {/* Left Column: Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* AI Tag */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-6">
+                <Sparkles className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">AI-Powered Matching</span>
               </div>
-              <div className="grid grid-cols-3 gap-4 mt-12">
-                <div>
-                  <div className="text-2xl text-blue-600">10,000+</div>
-                  <div className="text-sm text-muted-foreground">Students</div>
-                </div>
-                <div>
-                  <div className="text-2xl text-blue-600">5,000+</div>
-                  <div className="text-sm text-muted-foreground">Scholarships</div>
-                </div>
-                <div>
-                  <div className="text-2xl text-blue-600">50+</div>
-                  <div className="text-sm text-muted-foreground">Countries</div>
-                </div>
+
+              {/* Headline */}
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                Find Scholarships<br />That Shape Your Future
+              </h1>
+
+              {/* Supporting Text */}
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-lg leading-relaxed">
+                Verified scholarships, personalized matching, and a simple process designed specifically for Nepali students pursuing their dreams abroad.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  size="lg"
+                  onClick={handleSignUpNavigation}
+                  className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-lg transition-all group"
+                >
+                  Get Started
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("/scholarships")}
+                  className="border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-lg"
+                >
+                  Explore Scholarships
+                </Button>
               </div>
             </motion.div>
 
+            {/* Right Column: Image */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="relative"
             >
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1653250198948-1405af521dbb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwZ3JhZHVhdGlvbiUyMGNlbGVicmF0aW9ufGVufDF8fHx8MTc2MjM2MzkxNXww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Student celebrating graduation"
-                className="rounded-2xl shadow-2xl w-full"
-              />
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -top-6 -left-6 bg-background p-4 rounded-xl shadow-lg"
-              >
-                <BookOpen className="h-8 w-8 text-blue-600" />
-              </motion.div>
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                className="absolute -bottom-6 -right-6 bg-background p-4 rounded-xl shadow-lg"
-              >
-                <Globe className="h-8 w-8 text-blue-600" />
-              </motion.div>
+              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src={applyBroLandingImage}
+                  alt="Students studying together"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute inset-0 bg-blue-500/5"></div>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="mb-4">How It Works</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Three simple steps to discover scholarships tailored for you
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
+      {/* Trust & Impact Metrics */}
+      <section className="py-16 px-6 bg-white dark:bg-gray-950">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid md:grid-cols-3 gap-12 text-center">
             {[
-              {
-                icon: <GraduationCap className="h-8 w-8" />,
-                title: "Sign Up",
-                description: "Create your student profile in minutes",
-                step: "01",
-              },
-              {
-                icon: <Upload className="h-8 w-8" />,
-                title: "Upload Documents",
-                description: "+2 or Bachelor certificate and transcripts",
-                step: "02",
-              },
-              {
-                icon: <Sparkles className="h-8 w-8" />,
-                title: "Get Matched",
-                description: "Explore verified scholarships instantly",
-                step: "03",
-              },
-            ].map((item, index) => (
+              { number: "10,000+", label: "Students" },
+              { number: "5,000+", label: "Scholarships" },
+              { number: "50+", label: "Countries" },
+            ].map((stat, index) => (
               <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 50 }}
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
               >
-                <Card className="hover:shadow-lg transition-shadow border-2 border-transparent hover:border-blue-200">
-                  <CardContent className="p-6 text-center">
-                    <div className="relative mb-4">
-                      <div
-                        className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white"
-                        style={{ backgroundColor: "#007BFF" }}
-                      >
-                        {item.icon}
-                      </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm text-blue-600">
-                        {item.step}
-                      </div>
-                    </div>
-                    <h3 className="mb-2">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm">{item.description}</p>
-                  </CardContent>
-                </Card>
+                <div className="text-4xl md:text-5xl font-bold text-blue-500 dark:text-blue-400 mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="scholarships" className="py-20 px-4 bg-blue-50 dark:bg-blue-900/20">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="mb-4">Top Opportunities for You</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover scholarships from around the world
+      {/* How ApplyBro Works */}
+      <section className="py-20 px-6 bg-gray-50 dark:bg-gray-900/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Your Journey to Success
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Three simple steps to discover opportunities tailored for you
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {scholarships.map((scholarship, index) => (
-              <motion.div
-                key={scholarship.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <Card className="h-full hover:shadow-xl transition-all">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <Badge
-                        variant="secondary"
-                        style={{ backgroundColor: "#E9F2FF", color: "#007BFF" }}
-                      >
-                        {scholarship.country}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">{scholarship.deadline}</span>
-                    </div>
-                    <h3 className="mb-2">{scholarship.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{scholarship.description}</p>
-                    <div className="text-lg text-blue-600 mb-4">{scholarship.amount}</div>
-                    <Button variant="outline" className="w-full hover:bg-blue-600 hover:text-white" onClick={handleSignUpNavigation}>
-                      Apply Now
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: GraduationCap,
+                title: "Sign Up",
+                description: "Create your profile in minutes",
+              },
+              {
+                icon: Upload,
+                title: "Upload",
+                description: "Share your academic documents",
+              },
+              {
+                icon: Sparkles,
+                title: "Get Matched",
+                description: "Discover verified scholarships",
+              },
+            ].map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={step.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-500 flex items-center justify-center">
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                        {step.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">{step.description}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
-          <div className="text-center mt-8">
-            <Button variant="outline" size="lg">
+        </div>
+      </section>
+
+      {/* Scholarship Preview - Horizontal with Images */}
+      <section id="scholarships" className="py-20 px-6 bg-white dark:bg-gray-950">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Featured Scholarships
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Real opportunities waiting for students like you
+            </p>
+          </div>
+
+          {isLoadingScholarships ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+              <p className="text-gray-500 dark:text-gray-400 mt-4">Loading scholarships...</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {scholarships.map((scholarship, index) => {
+                const deadlineDate = scholarship.deadline ? new Date(scholarship.deadline) : null;
+                const formattedDeadline = deadlineDate
+                  ? deadlineDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                  : "Rolling";
+
+                return (
+                  <motion.div
+                    key={scholarship._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -8 }}
+                  >
+                    <Card
+                      className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all cursor-pointer overflow-hidden h-full"
+                      onClick={handleLoginNavigation}
+                    >
+                      {/* Scholarship Image */}
+                      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-950/10">
+                        <img
+                          src={scholarship.imageUrl || `https://images.unsplash.com/photo-${1523050854058 + index}?w=600&h=400&fit=crop`}
+                          alt={scholarship.title || scholarship.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
+
+                        {/* Country Badge on Image */}
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white border-0 backdrop-blur-sm">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {scholarship.country}
+                          </Badge>
+                        </div>
+
+                        {/* Deadline Badge on Image */}
+                        <div className="absolute top-4 right-4">
+                          <Badge className="bg-blue-500/90 text-white border-0 backdrop-blur-sm text-xs">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {formattedDeadline}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <CardContent className="p-5">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[3.5rem]">
+                          {scholarship.title || scholarship.name}
+                        </h3>
+
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                          {scholarship.description || `Study opportunity in ${scholarship.country}`}
+                        </p>
+
+                        <div className="flex items-center justify-between mb-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                          <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="line-clamp-1">{scholarship.amount || "Full Coverage"}</span>
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg group"
+                          onClick={handleLoginNavigation}
+                        >
+                          View Opportunity
+                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="text-center mt-12">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigate("/scholarships")}
+              className="border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-lg"
+            >
               View All Scholarships
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -416,205 +398,140 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
         </div>
       </section>
 
-      <section id="guidance" className="py-20 px-4 bg-background">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="mb-4">Learn How to Win Scholarships</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Expert guidance and resources to boost your application
-            </p>
-          </div>
-          <Tabs defaultValue="articles" className="max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="articles">
-                <FileText className="mr-2 h-4 w-4" />
-                Articles
-              </TabsTrigger>
-              <TabsTrigger value="videos">
-                <Video className="mr-2 h-4 w-4" />
-                Videos
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="articles" className="mt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {ARTICLES.map((article) => (
-                  <Card key={article.title} className="hover:shadow-lg transition-shadow cursor-pointer">
-                    <CardContent className="p-0">
-                      <ImageWithFallback
-                        src={article.image}
-                        alt={article.title}
-                        className="w-full h-48 object-cover rounded-t-lg"
-                      />
-                      <div className="p-4">
-                        <p className="text-xs text-muted-foreground mb-2">{article.time}</p>
-                        <h3 className="text-lg">{article.title}</h3>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="videos" className="mt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {VIDEOS.map((video) => (
-                  <Card key={video.title} className="hover:shadow-lg transition-shadow cursor-pointer">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: "#E9F2FF" }}
-                        >
-                          <Video className="h-8 w-8 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg mb-2">{video.title}</h3>
-                          <Badge variant="secondary">{video.duration}</Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      <section
-        id="community"
-        className="py-20 px-4 bg-blue-50 dark:bg-blue-900/20"
-      >
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="mb-4">Hear from Real Students</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of students who found their dream scholarships
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card className="h-full">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Avatar>
-                        <AvatarImage src={testimonial.avatar} />
-                        <AvatarFallback>{testimonial.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div>{testimonial.name}</div>
-                        <div className="text-sm text-muted-foreground">{testimonial.country}</div>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground text-sm italic">"{testimonial.quote}"</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Button size="lg" style={{ backgroundColor: "#007BFF" }} onClick={handleSignUpNavigation}>
-              <Users className="mr-2 h-5 w-5" />
-              Join Community
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-4 bg-background">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="rounded-2xl p-12 text-center text-white"
-            style={{
-              background: "linear-gradient(135deg, #007BFF 0%, #0056b3 100%)",
-            }}
+      {/* Final CTA - Clean & Encouraging */}
+      <section className="py-20 px-6 bg-white dark:bg-gray-950">
+        <div className="container mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Ready to begin your journey?
+          </h2>
+          <p className="text-base text-gray-600 dark:text-gray-400 mb-10 max-w-xl mx-auto">
+            Join thousands of Nepali students discovering their path to global education.
+          </p>
+          <Button
+            size="lg"
+            onClick={handleSignUpNavigation}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 px-10 py-6"
           >
-            <h2 className="mb-4 text-white">Ready to Discover Scholarships That Fit You?</h2>
-            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of students who have already found their dream scholarships
-            </p>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="bg-background text-blue-600 hover:bg-gray-100"
-              onClick={handleSignUpNavigation}
-            >
-              Create My Account Now
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
-          </motion.div>
+            Create My Account
+          </Button>
         </div>
       </section>
 
-      <footer id="about" className="bg-gray-900 text-white py-12 px-4">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-2">
+      {/* Footer - 3 Column Layout */}
+      <footer id="about" className="py-16 px-6 bg-gray-50 dark:bg-gray-900/30">
+        <div className="container mx-auto max-w-6xl">
+          {/* Main Footer Content - 3 Columns */}
+          <div className="grid md:grid-cols-3 gap-12 mb-12">
+            {/* LEFT COLUMN - Brand & Trust */}
+            <div>
               <div className="flex items-center gap-2 mb-4">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "#007BFF" }}
-                >
-                  <GraduationCap className="h-6 w-6 text-white" />
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                  <GraduationCap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xl">ApplyBro</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">ApplyBro</span>
               </div>
-              <p className="text-gray-400 mb-4">
-                Empowering students with opportunities to study abroad through personalized scholarship matching.
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                Empowering Nepali students to discover and apply for verified international scholarships with confidence.
               </p>
-              <div className="flex gap-3">
-                {[Facebook, Instagram, Linkedin].map((Icon, index) => (
+
+              {/* Newsletter */}
+              <div className="space-y-3">
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+                <Button
+                  size="sm"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                >
+                  Subscribe
+                </Button>
+              </div>
+            </div>
+
+            {/* MIDDLE COLUMN - Navigation */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Navigate</h4>
+              <nav className="space-y-3">
+                {[
+                  { label: "Home", href: "#" },
+                  { label: "Scholarships", href: "#scholarships" },
+                  { label: "Guidance", href: "#guidance" },
+                  { label: "About", href: "#about" },
+                  { label: "Documents", href: "/dashboard" },
+                ].map((link) => (
                   <a
-                    key={index}
-                    href="#"
-                    className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition-colors"
+                    key={link.label}
+                    href={link.href}
+                    className="block text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                   >
-                    <Icon className="h-5 w-5" />
+                    {link.label}
                   </a>
                 ))}
+              </nav>
+            </div>
+
+            {/* RIGHT COLUMN - Contact & Social */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Get in Touch</h4>
+
+              <div className="space-y-6">
+                {/* Support Email */}
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Support</p>
+                  <a
+                    href="mailto:support@applybro.com"
+                    className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
+                  >
+                    support@applybro.com
+                  </a>
+                </div>
+
+                {/* Social Icons */}
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Follow Us</p>
+                  <div className="flex gap-3">
+                    {[
+                      { icon: Facebook, label: "Facebook" },
+                      { icon: Instagram, label: "Instagram" },
+                      { icon: Linkedin, label: "LinkedIn" },
+                    ].map(({ icon: Icon, label }) => (
+                      <a
+                        key={label}
+                        href="#"
+                        className="w-9 h-9 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-all"
+                        aria-label={label}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <div>
-              <h3 className="mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-gray-400">
-                {["About Us", "Scholarships", "Success Stories", "Contact"].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="hover:text-white transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                {["Privacy Policy", "Terms of Service", "Cookie Policy", "Help Center"].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="hover:text-white transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
-          <div className="border-t border-gray-800 pt-6 text-center text-gray-400">
-            <p>© 2025 ApplyBro | Empowering Students Across Nepal</p>
+
+          {/* Bottom Legal Bar */}
+          <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+              <div>© 2025 ApplyBro. Empowering Students Worldwide.</div>
+              <div className="flex gap-6">
+                <a href="#" className="hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                  Privacy Policy
+                </a>
+                <a href="#" className="hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                  Terms of Service
+                </a>
+                <a href="#" className="hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                  Cookie Policy
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
-
     </div>
   );
 }

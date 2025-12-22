@@ -2,6 +2,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
+import applyBroLandingImage from "@/assets/applybrolanding.png";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, GraduationCap } from "lucide-react";
 import { useState } from "react";
@@ -160,10 +161,10 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-6xl grid gap-8 items-center lg:grid-cols-2">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Section - Registration Form */}
-        <div className="bg-card rounded-2xl shadow-lg p-8 lg:p-12 w-full max-w-md mx-auto lg:mx-0">
+        <div className="bg-card rounded-2xl shadow-lg p-8 w-full max-w-md mx-auto lg:mx-0">
           {/* Logo and Title */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
@@ -201,7 +202,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
             <div>
               <Label htmlFor="fullName" className="text-sm font-semibold text-muted-foreground mb-2 block">
@@ -465,24 +466,24 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
         </div>
 
         {/* Right Section - Illustration */}
-        <div className="flex flex-col justify-center items-center order-first lg:order-last">
-          <div className="relative w-full flex justify-center">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1080&auto=format&fit=crop"
+        <div className="hidden lg:flex flex-col justify-center items-center">
+          <div className="relative">
+            <img
+              src={applyBroLandingImage}
               alt="Students celebrating"
               className="rounded-2xl shadow-2xl w-full max-w-lg"
             />
-            <div className="absolute -bottom-4 -right-4 bg-card p-4 rounded-xl shadow-lg border-2 border-blue-100">
+            <div className="absolute -bottom-4 -right-4 bg-card p-4 rounded-xl shadow-lg border-2 border-blue-100 dark:border-blue-900/50">
               <p className="text-sm">
-                <span className="text-blue-600">🚀 5,000+</span> new students joined this year
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">🚀 5,000+</span> new students joined this year
               </p>
             </div>
           </div>
-          <div className="mt-6 text-center text-muted-foreground max-w-md">
-            <h2 className="text-2xl font-semibold mb-2" style={{ color: "#007BFF" }}>
+          <div className="mt-8 text-center max-w-md">
+            <h2 className="text-2xl font-semibold mb-3 text-blue-600 dark:text-blue-400">
               Start your scholarship journey today
             </h2>
-            <p>
+            <p className="text-muted-foreground leading-relaxed">
               Discover programs worldwide, upload documents once, and manage every requirement from one calm place.
             </p>
           </div>
