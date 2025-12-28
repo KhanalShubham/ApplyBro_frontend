@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Globe, GraduationCap, Calendar, DollarSign, CheckCircle2, Lightbulb, Bookmark, AlertCircle, Clock, Info } from 'lucide-react';
 import { ScholarshipMatch, CATEGORY_CONFIG } from '@/types/recommendation';
 import { MatchScoreIndicator } from './MatchScoreIndicator';
 import { MatchExplanationModal } from './MatchExplanationModal';
@@ -47,8 +48,8 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
     // Urgency indicator
     const getDeadlineUrgency = () => {
-        if (daysUntilDeadline <= 7) return { text: '🔥 URGENT', color: 'text-red-600', bg: 'bg-red-50' };
-        if (daysUntilDeadline <= 30) return { text: '⏰ Soon', color: 'text-orange-600', bg: 'bg-orange-50' };
+        if (daysUntilDeadline <= 7) return { text: 'URGENT', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' };
+        if (daysUntilDeadline <= 30) return { text: 'Soon', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' };
         return null;
     };
 
@@ -58,13 +59,13 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
     const borderColors = {
         highly_recommended: 'border-green-300 hover:border-green-400',
         partially_suitable: 'border-yellow-300 hover:border-yellow-400',
-        explore_and_prepare: 'border-blue-300 hover:border-blue-400'
+        explore_and_prepare: 'border-red-300 hover:border-red-400'
     };
 
     const bgColors = {
         highly_recommended: 'bg-green-50',
         partially_suitable: 'bg-yellow-50',
-        explore_and_prepare: 'bg-blue-50'
+        explore_and_prepare: 'bg-red-50'
     };
 
     if (compact) {
@@ -78,8 +79,8 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                         <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-900 truncate">{scholarship.title}</h4>
                             <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                                <span>🌍 {scholarship.country}</span>
-                                {scholarship.level && <span>• {scholarship.level}</span>}
+                                <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> {scholarship.country}</span>
+                                {scholarship.level && <span className="flex items-center gap-1">• <GraduationCap className="w-3 h-3" /> {scholarship.level}</span>}
                             </div>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -108,6 +109,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                 <div className={`relative ${bgColors[category]} p-6 pb-4`}>
                     {urgency && (
                         <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${urgency.bg} ${urgency.color} mb-3`}>
+                            <urgency.icon className="w-3 h-3" />
                             {urgency.text}
                         </div>
                     )}
@@ -148,10 +150,9 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                     {/* Category Badge */}
                     <div className="mt-3">
                         <span className="inline-flex items-center gap-1 text-sm font-medium">
-                            <span className="text-lg">{config.emoji}</span>
                             <span className={`${category === 'highly_recommended' ? 'text-green-700' :
                                 category === 'partially_suitable' ? 'text-yellow-700' :
-                                    'text-blue-700'
+                                    'text-red-700'
                                 }`}>
                                 {config.label}
                             </span>
@@ -163,23 +164,23 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                 <div className="p-6 pt-4">
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                        <div className="flex items-center gap-2">
-                            <span className="text-gray-500">🌍</span>
-                            <span className="text-gray-700">{scholarship.country}</span>
+                        <div className="flex items-center gap-2 text-gray-700">
+                            <Globe className="w-4 h-4 text-gray-400" />
+                            <span>{scholarship.country}</span>
                         </div>
                         {scholarship.level && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-gray-500">🎓</span>
-                                <span className="text-gray-700">{scholarship.level}</span>
+                            <div className="flex items-center gap-2 text-gray-700">
+                                <GraduationCap className="w-4 h-4 text-gray-400" />
+                                <span>{scholarship.level}</span>
                             </div>
                         )}
-                        <div className="flex items-center gap-2">
-                            <span className="text-gray-500">📅</span>
-                            <span className="text-gray-700">{formatDeadline(scholarship.deadline)}</span>
+                        <div className="flex items-center gap-2 text-gray-700">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span>{formatDeadline(scholarship.deadline)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-gray-500">💰</span>
-                            <span className="text-gray-700">{scholarship.amount || 'Full Tuition'}</span>
+                        <div className="flex items-center gap-2 text-gray-700">
+                            <DollarSign className="w-4 h-4 text-gray-400" />
+                            <span>{scholarship.amount || 'Full Tuition'}</span>
                         </div>
                     </div>
 
@@ -190,7 +191,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                             <ul className="space-y-1">
                                 {whyRecommended.slice(0, 3).map((reason, index) => (
                                     <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                                        <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+                                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                                         <span className="flex-1">{reason}</span>
                                     </li>
                                 ))}
@@ -219,7 +220,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                             title="Why recommended?"
                         >
-                            💡
+                            <Info className="w-4 h-4" />
                         </button>
                         {onSave && (
                             <button
@@ -227,7 +228,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                                 title="Save scholarship"
                             >
-                                🔖
+                                <Bookmark className="w-4 h-4" />
                             </button>
                         )}
                     </div>

@@ -392,7 +392,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                             <CardContent className="p-8 relative z-10">
                               <div className="flex items-start justify-between mb-6">
                                 <div>
-                                  <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Hi, {displayName} 👋</h1>
+                                  <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Hi, {displayName}</h1>
                                   <p className="text-white/90 text-base font-medium">
                                     Here's your scholarship journey overview
                                   </p>
@@ -540,7 +540,8 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                         >
                           <div className="flex items-center justify-between mb-4">
                             <h2 className="flex items-center gap-2 font-semibold text-lg">
-                              🎯 Recommended For You
+                              <Target className="w-5 h-5 text-blue-600" />
+                              Recommended For You
                             </h2>
                             <Button
                               variant="ghost"
@@ -569,7 +570,11 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-purple-50/0 group-hover:from-blue-50/50 group-hover:to-purple-50/30 transition-all duration-300" />
                                       <CardContent className="p-6 relative z-10 flex flex-col h-full">
                                         <div className="flex items-start justify-between mb-4">
-                                          <span className="text-3xl">{scholarship.country === 'USA' ? '🇺🇸' : scholarship.country === 'UK' ? '🇬🇧' : scholarship.country === 'Germany' ? '🇩🇪' : '🌍'}</span>
+                                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                                            <span className="text-sm font-bold text-blue-600">
+                                              {scholarship.country === 'USA' ? 'US' : scholarship.country === 'UK' ? 'UK' : scholarship.country === 'Germany' ? 'DE' : 'ALL'}
+                                            </span>
+                                          </div>
                                           <Badge
                                             className={`${scholarship.status === 'open' ? 'bg-green-500' : 'bg-orange-500'} text-white font-semibold shadow-sm px-2.5 py-1 capitalize`}
                                           >
@@ -608,7 +613,10 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.3 }}
                         >
-                          <h2 className="mb-6 text-xl font-bold text-foreground">📁 Recent Documents</h2>
+                          <h2 className="mb-6 text-xl font-bold text-foreground flex items-center gap-2">
+                            <Folder className="w-6 h-6 text-blue-600" />
+                            Recent Documents
+                          </h2>
                           <div className="grid md:grid-cols-2 gap-6">
                             {recentDocuments.length === 0 ? (
                               <div className="col-span-2 text-center py-6 bg-muted/50 rounded-xl border border-dashed">
@@ -670,7 +678,10 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                           transition={{ delay: 0.5 }}
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-semibold text-xl">💬 Community Highlights</h2>
+                            <h2 className="font-semibold text-xl flex items-center gap-2">
+                              <MessageCircle className="w-6 h-6 text-blue-600" />
+                              Community Highlights
+                            </h2>
                             <Button variant="ghost" size="sm" onClick={() => setActiveSection("community")}>View Community</Button>
                           </div>
 

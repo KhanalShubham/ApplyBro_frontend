@@ -123,6 +123,12 @@ export function SettingsPage() {
   const [country, setCountry] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
+  // Academic Profile Settings
+  const [educationLevel, setEducationLevel] = useState("");
+  const [gpa, setGpa] = useState("");
+  const [major, setMajor] = useState("");
+  const [preferredCountries, setPreferredCountries] = useState<string[]>([]);
+
   // Language Settings
   const [language, setLanguage] = useState("english");
 
@@ -146,6 +152,12 @@ export function SettingsPage() {
       setPhone(user.phone || "");
       setCountry(user.profile?.country || "");
       setAvatarUrl(user.profile?.avatar || "");
+
+      // Load academic profile data
+      setEducationLevel(user.profile?.educationLevel || "");
+      setGpa(user.profile?.gpa?.toString() || "");
+      setMajor(user.profile?.major || "");
+      setPreferredCountries(user.profile?.preferredCountries || []);
 
       if (user.preferences) {
         setLanguage(user.preferences.language || "english");
@@ -178,7 +190,14 @@ export function SettingsPage() {
       await userService.updateProfile({
         name: fullName,
         phone,
-        profile: { country, avatar: avatarUrl },
+        profile: {
+          country,
+          avatar: avatarUrl,
+          educationLevel,
+          gpa: gpa ? parseFloat(gpa) : undefined,
+          major,
+          preferredCountries
+        },
       });
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -389,7 +408,7 @@ export function SettingsPage() {
                       <Label htmlFor="country">{t.profile.country}</Label>
                       <Select value={country} onValueChange={setCountry}>
                         <SelectTrigger id="country">
-                          <SelectValue />
+                          <SelectValue placeholder="Select your country" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Nepal">Nepal</SelectItem>
@@ -399,6 +418,112 @@ export function SettingsPage() {
                           <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Academic Profile Section */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Academic Profile</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="educationLevel">Education Level</Label>
+                        <Select value={educationLevel} onValueChange={setEducationLevel}>
+                          <SelectTrigger id="educationLevel">
+                            <SelectValue placeholder="Select education level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="+2">+2 (High School)</SelectItem>
+                            <SelectItem value="Bachelor">Bachelor's Degree</SelectItem>
+                            <SelectItem value="Master">Master's Degree</SelectItem>
+                            <SelectItem value="PhD">PhD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="gpa">GPA (0-4.0)</Label>
+                        <Input
+                          id="gpa"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="4.0"
+                          placeholder="e.g. 3.75"
+                          value={gpa}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 4.0)) {
+                              setGpa(value);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="major">Field of Study / Major</Label>
+                        <Input
+                          id="major"
+                          placeholder="e.g. Computer Science, Business Administration, etc."
+                          value={major}
+                          onChange={(e) => setMajor(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Preferred Countries for Study</Label>
+                        <Select
+                          onValueChange={(value: string) => {
+                            if (!preferredCountries.includes(value)) {
+                              setPreferredCountries([...preferredCountries, value]);
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select countries you want to study in" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="United States">🇺🇸 United States</SelectItem>
+                            <SelectItem value="United Kingdom">🇬🇧 United Kingdom</SelectItem>
+                            <SelectItem value="Canada">🇨🇦 Canada</SelectItem>
+                            <SelectItem value="Australia">🇦🇺 Australia</SelectItem>
+                            <SelectItem value="Germany">🇩🇪 Germany</SelectItem>
+                            <SelectItem value="France">🇫🇷 France</SelectItem>
+                            <SelectItem value="Netherlands">🇳🇱 Netherlands</SelectItem>
+                            <SelectItem value="Sweden">🇸🇪 Sweden</SelectItem>
+                            <SelectItem value="Norway">🇳🇴 Norway</SelectItem>
+                            <SelectItem value="Denmark">🇩🇰 Denmark</SelectItem>
+                            <SelectItem value="Switzerland">🇨🇭 Switzerland</SelectItem>
+                            <SelectItem value="Japan">🇯🇵 Japan</SelectItem>
+                            <SelectItem value="South Korea">🇰🇷 South Korea</SelectItem>
+                            <SelectItem value="Singapore">🇸🇬 Singapore</SelectItem>
+                            <SelectItem value="New Zealand">🇳🇿 New Zealand</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {/* Display selected countries as badges */}
+                        {preferredCountries.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {preferredCountries.map((country) => (
+                              <Badge
+                                key={country}
+                                variant="secondary"
+                                className="flex items-center gap-1 px-3 py-1"
+                              >
+                                {country}
+                                <button
+                                  type="button"
+                                  onClick={() => setPreferredCountries(preferredCountries.filter(c => c !== country))}
+                                  className="ml-1 hover:text-red-600"
+                                >
+                                  ✕
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
