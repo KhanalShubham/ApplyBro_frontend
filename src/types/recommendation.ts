@@ -74,25 +74,26 @@ export interface EnhancedRecommendationsApiResponse {
 }
 
 // Category badge configurations
+// Category badge configurations
 export const CATEGORY_CONFIG = {
     highly_recommended: {
         label: 'Highly Recommended',
         color: 'green',
-        emoji: '🟢',
+        emoji: '',
         description: 'Best matches for you',
         minScore: 80
     },
     partially_suitable: {
         label: 'Worth Exploring',
         color: 'yellow',
-        emoji: '🟡',
+        emoji: '',
         description: 'Good options with some gaps',
         minScore: 60
     },
     explore_and_prepare: {
         label: 'Prepare for These',
-        color: 'blue',
-        emoji: '🔵',
+        color: 'red',
+        emoji: '',
         description: 'Future opportunities to work towards',
         minScore: 0
     }
