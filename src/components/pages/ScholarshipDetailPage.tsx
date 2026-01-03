@@ -135,7 +135,9 @@ export function ScholarshipDetailPage({ scholarship, onBack }: ScholarshipPagePr
                   <GraduationCap className="w-5 h-5" />
                   Level
                 </div>
-                <div className="text-xl font-bold text-[#0F172A]">{scholarship.level || scholarship.degree}</div>
+                <div className="text-xl font-bold text-[#0F172A]">
+                  {Array.isArray(scholarship.level) ? scholarship.level.join(', ') : (scholarship.level || scholarship.degree)}
+                </div>
               </div>
               <div className="p-5 bg-teal-50 rounded-xl border border-teal-100">
                 <div className="flex items-center gap-3 mb-2 text-teal-800 font-medium">

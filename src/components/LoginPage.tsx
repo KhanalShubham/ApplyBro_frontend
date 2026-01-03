@@ -2,7 +2,8 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import applyBroLandingImage from "@/assets/applybrolanding.png";
+import applyBroLandingImage from "@/assets/applyborlanding.jpg";
+import logo from "@/assets/logo.png";
 import { Separator } from "./ui/separator";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -107,10 +108,10 @@ export function LoginPage({ onLoginSuccess, onSignUpClick }: LoginPageProps) {
         <div className="bg-card rounded-2xl shadow-lg p-8 w-full max-w-md mx-auto lg:mx-0">
           {/* Logo and Tagline */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
-              <span className="text-2xl text-blue-600 dark:text-blue-400">📚</span>
+            <div className="flex flex-col items-center justify-center mb-4">
+              <img src={logo} alt="ApplyBro Logo" className="h-20 w-auto mb-2" />
+              <h2 className="text-2xl font-bold text-blue-600" style={{ color: '#007BFF' }}>ApplyBro</h2>
             </div>
-            <h2 className="text-blue-600 mb-1" style={{ color: '#007BFF' }}>ApplyBro</h2>
             <p className="text-sm text-muted-foreground">Empowering Students with Opportunities</p>
           </div>
 

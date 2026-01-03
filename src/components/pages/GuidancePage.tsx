@@ -40,6 +40,8 @@ import { toast } from "sonner";
 import { Loader } from "../ui/loader";
 import { ScrollArea } from "../ui/scroll-area";
 
+import { MarkdownRenderer } from "../ui/MarkdownRenderer";
+
 export function GuidancePage() {
   const [activeTab, setActiveTab] = useState<"articles" | "videos" | "faqs" | "tests">("articles");
   const [selectedTopic, setSelectedTopic] = useState("all");
@@ -296,7 +298,7 @@ export function GuidancePage() {
                               <span>{resource.difficulty || "Beginner"}</span>
                             </div>
                             <Button
-                              className="w-full shadow-none"
+                              className="w-full shadow-none bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 transition-colors"
                               size="sm"
                               onClick={() => openResource(resource)}
                             >
@@ -386,11 +388,19 @@ export function GuidancePage() {
                     </Button>
 
                     {quizStep < (activeQuiz as any).questions.length - 1 ? (
-                      <Button onClick={() => setQuizStep(prev => prev + 1)}>
+                      <Button
+                        onClick={() => setQuizStep(prev => prev + 1)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
                         Next <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
                     ) : (
-                      <Button onClick={submitQuiz}>Submit Quiz</Button>
+                      <Button
+                        onClick={submitQuiz}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Submit Quiz
+                      </Button>
                     )}
                   </DialogFooter>
                 </div>
@@ -408,7 +418,12 @@ export function GuidancePage() {
                   </div>
                   <div className="flex justify-center gap-4">
                     <Button variant="outline" onClick={() => startQuiz(activeQuiz!)}>Retry</Button>
-                    <Button onClick={() => setActiveQuiz(null)}>Close</Button>
+                    <Button
+                      onClick={() => setActiveQuiz(null)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Close
+                    </Button>
                   </div>
                 </div>
               )}
@@ -426,10 +441,7 @@ export function GuidancePage() {
           </DialogHeader>
           <ScrollArea className="flex-1 px-8 py-6">
             <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert">
-              {/* Render Markdown or plain text */}
-              {activeContent?.content?.split('\n').map((line, i) => (
-                <p key={i} className="mb-4 text-gray-700 leading-relaxed">{line}</p>
-              ))}
+              <MarkdownRenderer content={activeContent?.content || ''} />
             </div>
           </ScrollArea>
         </DialogContent>
@@ -437,12 +449,12 @@ export function GuidancePage() {
 
       {/* Video Player Dialog */}
       <Dialog open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-black border-none overflow-hidden text-white" aria-describedby="video-description">
+        <DialogContent className="max-w-4xl p-0 bg-slate-900 border-none overflow-hidden text-white" aria-describedby="video-description">
           <DialogHeader className="sr-only">
             <DialogTitle>Video Player: {activeVideo?.title}</DialogTitle>
             <p id="video-description">Playing video: {activeVideo?.title}</p>
           </DialogHeader>
-          <div className="relative aspect-video w-full flex items-center justify-center">
+          <div className="relative aspect-video w-full flex items-center justify-center bg-black/50">
             <video
               src={activeVideo?.videoUrl}
               controls
@@ -460,12 +472,12 @@ export function GuidancePage() {
               <X className="h-6 w-6" />
             </Button>
           </div>
-          <div className="p-4 bg-zinc-900 flex justify-between items-center">
+          <div className="p-4 bg-slate-800 flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold text-white">{activeVideo?.title}</h3>
-              <p className="text-sm text-gray-400">{activeVideo?.description}</p>
+              <p className="text-sm text-blue-200">{activeVideo?.description}</p>
             </div>
-            <Button variant="outline" className="text-black border-white/20 bg-white hover:bg-gray-200" onClick={() => window.open(activeVideo?.videoUrl, '_blank')}>
+            <Button className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0" onClick={() => window.open(activeVideo?.videoUrl, '_blank')}>
               Open in New Tab
             </Button>
           </div>

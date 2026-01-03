@@ -9,6 +9,7 @@ export interface UserProfile {
   major?: string;
   gpa?: number;
   preferredCountries?: string[];
+  avatar?: string;
 }
 
 export interface User {
@@ -100,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: apiUser.name,
           email: apiUser.email,
           role: apiUser.role as UserRole,
-          avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
+          avatar: apiUser.profile?.avatar || apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
           profile: apiUser.profile,
           bookmarks: apiUser.bookmarks || [],
         };
@@ -156,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: apiUser.name,
         email: apiUser.email,
         role: apiUser.role as UserRole,
-        avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
+        avatar: apiUser.profile?.avatar || apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
         profile: apiUser.profile,
         bookmarks: apiUser.bookmarks || [],
       };
@@ -201,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: apiUser.name,
           email: apiUser.email,
           role: apiUser.role as UserRole,
-          avatar: apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
+          avatar: apiUser.profile?.avatar || apiUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`,
           profile: apiUser.profile,
           bookmarks: apiUser.bookmarks || [],
         };

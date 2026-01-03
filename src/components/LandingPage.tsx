@@ -4,7 +4,10 @@ import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import applyBroLandingImage from "@/assets/applybrolanding.png";
+import applyBroLandingImage from "@/assets/applyborlanding.jpg";
+import applyBroLandingImage2 from "@/assets/applyborlanding2.jpg";
+import applyBroLandingImage3 from "@/assets/applyborlanding3.jpg";
+import logo from "@/assets/logo.png";
 import {
   GraduationCap,
   Upload,
@@ -34,6 +37,19 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
   const [isScrolled, setIsScrolled] = useState(false);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoadingScholarships, setIsLoadingScholarships] = useState(true);
+
+  // Hero Image Rotation Logic
+  const heroImages = [applyBroLandingImage, applyBroLandingImage2, applyBroLandingImage3];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   // Fetch real scholarships from API
   useEffect(() => {
@@ -90,10 +106,8 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
           <nav className="flex items-center justify-between h-16">
             {/* Left: Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-semibold text-gray-900 dark:text-white">ApplyBro</span>
+              <img src={logo} alt="ApplyBro Logo" className="h-10 w-auto" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">ApplyBro</span>
             </div>
 
             {/* Center: Navigation */}
@@ -105,6 +119,13 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                 Scholarships
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
               </a>
+              <button
+                onClick={handleLoginNavigation}
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
+              >
+                Credit Transfer
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+              </button>
               <a
                 href="#guidance"
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
@@ -117,7 +138,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
               >
                 About
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute bottom-0 left-0 w-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
               </a>
             </div>
 
@@ -192,13 +213,36 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
               transition={{ duration: 0.6, delay: 0.2 }}
               className="relative"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+              <div
+                className="relative rounded-2xl overflow-hidden shadow-xl group max-w-lg mx-auto lg:ml-auto"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                {/* Spacer Image to maintain layout stability based on first image aspect ratio */}
                 <img
-                  src={applyBroLandingImage}
-                  alt="Students studying together"
-                  className="w-full h-auto object-cover"
+                  src={heroImages[0]}
+                  alt="Spacer"
+                  className="w-full h-auto opacity-0 invisible"
                 />
-                <div className="absolute inset-0 bg-blue-500/5"></div>
+
+                {/* Sliding Carousel Track */}
+                {/* Fade Carousel */}
+                <div className="absolute inset-0 w-full h-full">
+                  {heroImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentImageIndex === index ? "opacity-100 z-10" : "opacity-0 z-0"
+                        }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Student success ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-blue-500/5 pointer-events-none"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -425,10 +469,8 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
             {/* LEFT COLUMN - Brand & Trust */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">ApplyBro</span>
+                <img src={logo} alt="ApplyBro Logo" className="h-12 w-auto" />
+                <span className="text-xl font-bold text-gray-900 dark:text-white">ApplyBro</span>
               </div>
 
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">

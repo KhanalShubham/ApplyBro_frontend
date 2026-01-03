@@ -41,6 +41,7 @@ import {
   Award,
   Target,
   Zap,
+  ArrowRightLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -52,6 +53,7 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { RecommendationsPage } from "./RecommendationsPage";
+import { CreditTransferPage } from "./pages/CreditTransferPage";
 import { Loader } from "./ui/loader";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -63,6 +65,8 @@ import { toast } from "sonner";
 import { getImageUrl } from "../shared/lib/imageUtils";
 import { ModeToggle } from "./mode-toggle";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { SoftwaricaNativeAd } from "./SoftwaricaNativeAd";
+import logo from "@/assets/logo.png";
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -174,6 +178,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
   const sidebarItems = [
     { id: "dashboard", icon: Home, label: "Dashboard" },
     { id: "scholarships", icon: GraduationCap, label: "Scholarships" },
+    { id: "credit-transfer", icon: ArrowRightLeft, label: "Credit Transfer" },
     { id: "recommendations", icon: Target, label: "Recommendations" },
     { id: "documents", icon: Folder, label: "My Documents" },
     { id: "saved", icon: Bookmark, label: "Saved Items" },
@@ -201,17 +206,11 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#007BFF" }}
-            >
-              <GraduationCap className="h-6 w-6 text-white" />
-            </div>
+            <img src={logo} alt="ApplyBro Logo" className="h-10 w-auto" />
             <div className="hidden sm:block">
-              <span className="text-xl block" style={{ color: "#007BFF" }}>
+              <span className="text-xl font-bold block" style={{ color: "#007BFF" }}>
                 ApplyBro
               </span>
-              <span className="text-xs text-muted-foreground -mt-1 block">Empowering Students</span>
             </div>
           </div>
 
@@ -354,6 +353,7 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                 transition={{ duration: 0.2 }}
               >
                 {activeSection === "scholarships" && <ScholarshipsPage />}
+                {activeSection === "credit-transfer" && <CreditTransferPage />}
                 {activeSection === "recommendations" && <RecommendationsPage onSectionChange={handleSectionChange} />}
                 {activeSection === "documents" && <DocumentsPage />}
                 {activeSection === "saved" && <SavedItemsPage />}
@@ -380,56 +380,61 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                     <div className="grid lg:grid-cols-12 gap-6">
                       {/* Main Dashboard Column */}
                       <div className="lg:col-span-9 space-y-6">
+
+
+
                         {/* Welcome Header */}
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                          <Card className="bg-gradient-to-br from-blue-600 via-blue-500 to-purple-600 text-white border-0 overflow-hidden relative shadow-2xl shadow-blue-500/30 hover:shadow-3xl transition-shadow duration-500">
-                            <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -mr-36 -mt-36 blur-2xl" />
-                            <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/10 rounded-full -ml-28 -mb-28 blur-2xl" />
-                            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
+                          <Card
+                            className="text-white border-0 overflow-hidden relative shadow-xl shadow-blue-500/20"
+                            style={{ backgroundColor: '#155DFC' }}
+                          >
+                            {/* Decorative Overlay */}
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl -mr-32 -mt-48 pointer-events-none" />
+
                             <CardContent className="p-8 relative z-10">
-                              <div className="flex items-start justify-between mb-6">
-                                <div>
-                                  <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Hi, {displayName}</h1>
-                                  <p className="text-white/90 text-base font-medium">
-                                    Here's your scholarship journey overview
-                                  </p>
-                                </div>
+                              <div className="flex flex-col mb-8">
+                                <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                                  Hi, {displayName} <span className="animate-wave text-3xl">👋</span>
+                                </h1>
+                                <p className="text-blue-100 text-lg font-medium">
+                                  Here's your scholarship journey overview
+                                </p>
                               </div>
-                              <div className="mb-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                                <div className="flex items-center justify-between text-sm mb-3">
-                                  <span className="text-white/90 font-semibold">Profile Completion</span>
-                                  <span className="text-white font-bold text-lg">{Math.round(stats.applicationProgress)}%</span>
+
+                              <div className="mb-8 max-w-2xl">
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                  <span className="text-white/90 font-medium">Profile Completion</span>
+                                  <span className="text-white font-bold">{Math.round(stats.applicationProgress)}%</span>
                                 </div>
-                                <Progress value={stats.applicationProgress} className="h-3 bg-white/20 rounded-full overflow-hidden">
-                                  <div className="h-full bg-gradient-to-r from-white to-white/80 rounded-full transition-all duration-500" style={{ width: `${stats.applicationProgress}%` }} />
+                                {/* Dark/Black progress bar style from reference */}
+                                <Progress value={stats.applicationProgress} className="h-3 bg-black/20 rounded-full">
+                                  <div className="h-full bg-slate-900 rounded-full transition-all duration-500" style={{ width: `${stats.applicationProgress}%` }} />
                                 </Progress>
                               </div>
-                              <div className="flex flex-wrap gap-3 mt-6">
+
+                              <div className="flex flex-wrap gap-4">
                                 <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="bg-white text-blue-600 hover:bg-gray-50 hover:scale-105 transition-transform duration-200 font-semibold shadow-lg"
+                                  className="bg-white text-blue-600 hover:bg-white/90 font-semibold shadow-sm rounded-lg px-6"
                                   onClick={() => setActiveSection("documents")}
                                 >
                                   <Upload className="mr-2 h-4 w-4" />
                                   Upload Documents
                                 </Button>
                                 <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm border border-white/30 hover:scale-105 transition-all duration-200 font-semibold"
+                                  variant="ghost"
+                                  className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border-0 font-medium rounded-lg px-6"
                                   onClick={() => setActiveSection("scholarships")}
                                 >
                                   <Search className="mr-2 h-4 w-4" />
                                   Find Scholarships
                                 </Button>
                                 <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm border border-white/30 hover:scale-105 transition-all duration-200 font-semibold"
+                                  variant="ghost"
+                                  className="bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border-0 font-medium rounded-lg px-6"
                                   onClick={() => setActiveSection("guidance")}
                                 >
                                   <Award className="mr-2 h-4 w-4" />
@@ -558,17 +563,17 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                             </div>
                           ) : (
                             <ScrollArea className="w-full">
-                              <div className="flex gap-5 pb-4">
+                              <div className="flex gap-6 pb-6 px-2">
                                 {recommendedScholarships.map((scholarship, index) => (
                                   <motion.div
                                     key={scholarship._id || index}
-                                    whileHover={{ scale: 1.03, y: -8 }}
+                                    whileHover={{ scale: 1.02, y: -5 }}
                                     transition={{ type: "spring", stiffness: 300 }}
-                                    className="min-w-[320px]"
+                                    className="w-[320px] h-full flex-shrink-0"
                                   >
-                                    <Card className="hover:shadow-2xl transition-all duration-300 bg-card border-0 shadow-md hover:border-blue-300/50 overflow-hidden group cursor-pointer h-full">
+                                    <Card className="hover:shadow-xl transition-all duration-300 bg-card border border-gray-200 shadow-sm hover:border-blue-400 overflow-hidden group cursor-pointer h-full flex flex-col">
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-purple-50/0 group-hover:from-blue-50/50 group-hover:to-purple-50/30 transition-all duration-300" />
-                                      <CardContent className="p-6 relative z-10 flex flex-col h-full">
+                                      <CardContent className="p-6 relative z-10 flex flex-col flex-1">
                                         <div className="flex items-start justify-between mb-4">
                                           <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
                                             <span className="text-sm font-bold text-blue-600">
@@ -581,17 +586,25 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                                             {scholarship.status}
                                           </Badge>
                                         </div>
-                                        <h3 className="text-lg font-bold mb-3 text-foreground group-hover:text-blue-600 transition-colors line-clamp-2">{scholarship.title}</h3>
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 flex-wrap mt-auto">
-                                          <Badge variant="outline" className="font-medium">{scholarship.level}</Badge>
+
+                                        {/* Fixed height title container for alignment */}
+                                        <div className="h-14 mb-3 flex items-start">
+                                          <h3 className="text-lg font-bold text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                                            {scholarship.title}
+                                          </h3>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6 mt-auto">
+                                          <Badge variant="secondary" className="font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">{scholarship.level}</Badge>
                                           <span className="text-muted-foreground">•</span>
                                           <div className="flex items-center gap-1.5">
                                             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                                             <span className="font-medium">{new Date(scholarship.deadline).toLocaleDateString()}</span>
                                           </div>
                                         </div>
+
                                         <Button
-                                          className="w-full font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+                                          className="w-full font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] mt-auto"
                                           style={{ backgroundColor: "#007BFF" }}
                                           onClick={() => setActiveSection("scholarships")}
                                         >
@@ -605,6 +618,14 @@ export function Dashboard({ onLogout, userName }: DashboardProps) {
                               </div>
                             </ScrollArea>
                           )}
+                        </motion.div>
+
+                        {/* Sponsored Partner Section */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          <SoftwaricaNativeAd />
                         </motion.div>
 
                         {/* Document Status */}

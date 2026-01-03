@@ -1,157 +1,86 @@
+
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.png";
+import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { Search, Home, ArrowLeft, HelpCircle } from "lucide-react";
-import { motion } from "motion/react";
 
 export function NotFoundPage() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center p-4">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-2xl"
-            >
-                <Card className="border-0 shadow-2xl">
-                    <CardContent className="p-12 text-center">
-                        {/* 404 Number */}
-                        <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-                            className="mb-6"
-                        >
-                            <h1 className="text-9xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                404
-                            </h1>
-                        </motion.div>
+        <div className="min-h-screen bg-white flex flex-col font-sans selection:bg-gray-200 overflow-hidden">
+            {/* Header / Logo Area */}
+            <div className="absolute top-0 left-0 p-6 md:p-10 z-20">
+                <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
+                    <img src={logo} alt="ApplyBro Logo" className="h-10 w-auto group-hover:scale-105 transition-transform" />
+                    <span className="text-xl font-bold text-gray-900">ApplyBro</span>
+                </div>
+            </div>
 
-                        {/* Icon */}
-                        <motion.div
-                            initial={{ rotate: -180, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            transition={{ delay: 0.3, type: "spring" }}
-                            className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6"
-                        >
-                            <HelpCircle className="w-10 h-10 text-blue-600" />
-                        </motion.div>
+            {/* Main Content Container */}
+            <div className="flex-1 w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center justify-center p-6 md:p-12 lg:gap-20">
 
-                        {/* Title */}
-                        <motion.h2
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            className="text-3xl font-bold text-gray-900 mb-4"
-                        >
-                            Page Not Found
-                        </motion.h2>
+                {/* Text Section */}
+                <div className="w-full lg:w-[45%] flex flex-col justify-center items-start z-10 pt-20 lg:pt-0 pl-0 lg:pl-12">
 
-                        {/* Description */}
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="text-lg text-gray-600 mb-8 max-w-md mx-auto"
-                        >
-                            Oops! The page you're looking for doesn't exist. It might have been moved or deleted.
-                        </motion.p>
+                    {/* Top Label */}
+                    <h2 className="text-xl font-bold text-gray-800 uppercase tracking-widest mb-6">
+                        Not Found
+                    </h2>
 
-                        {/* Search Suggestion */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 max-w-md mx-auto"
-                        >
-                            <div className="flex items-start gap-3 text-left">
-                                <Search className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <h3 className="font-semibold text-blue-900 mb-1">Looking for something?</h3>
-                                    <p className="text-sm text-blue-700">
-                                        Try searching for scholarships, guidance, or visit our community page to explore more.
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
+                    {/* Top Thick Bar */}
+                    <div className="h-3 w-48 bg-black mb-10"></div>
 
-                        {/* Actions */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="flex flex-col sm:flex-row gap-4 justify-center"
-                        >
-                            <Button
-                                onClick={() => navigate(-1)}
-                                variant="outline"
-                                size="lg"
-                                className="gap-2"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Go Back
-                            </Button>
-                            <Button
-                                onClick={() => navigate("/")}
-                                size="lg"
-                                className="gap-2 bg-blue-600 hover:bg-blue-700"
-                            >
-                                <Home className="w-4 h-4" />
-                                Go to Homepage
-                            </Button>
-                        </motion.div>
+                    {/* Massive Graphic Text */}
+                    <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8rem] font-black text-black leading-[0.9] mb-10 tracking-tighter uppercase whitespace-nowrap">
+                        THE PAGE<br />
+                        YOU ARE<br />
+                        LOOKING FOR<br />
+                        CANNOT BE<br />
+                        FOUND
+                    </h1>
 
-                        {/* Quick Links */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.8 }}
-                            className="mt-8 pt-8 border-t border-gray-200"
+                    {/* Bottom Thick Bar */}
+                    <div className="h-3 w-full max-w-2xl bg-black mb-10"></div>
+
+                    {/* Description */}
+                    <p className="text-xl text-gray-700 font-medium mb-12 max-w-lg leading-relaxed">
+                        We sent this guy to find out what happened.
+                        <br className="hidden md:block" />
+                        Rest assured, it will be dealt with.
+                    </p>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex flex-wrap gap-4">
+                        <Button
+                            onClick={() => navigate(-1)}
+                            variant="outline"
+                            className="h-14 px-8 border-2 border-black text-black hover:bg-black hover:text-white font-bold text-lg rounded-none uppercase tracking-wide transition-all"
                         >
-                            <p className="text-sm text-gray-500 mb-3">Quick Links:</p>
-                            <div className="flex flex-wrap justify-center gap-3">
-                                <Button
-                                    onClick={() => navigate("/dashboard")}
-                                    variant="link"
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700"
-                                >
-                                    Dashboard
-                                </Button>
-                                <span className="text-gray-300">•</span>
-                                <Button
-                                    onClick={() => navigate("/scholarships")}
-                                    variant="link"
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700"
-                                >
-                                    Scholarships
-                                </Button>
-                                <span className="text-gray-300">•</span>
-                                <Button
-                                    onClick={() => navigate("/guidance")}
-                                    variant="link"
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700"
-                                >
-                                    Guidance
-                                </Button>
-                                <span className="text-gray-300">•</span>
-                                <Button
-                                    onClick={() => navigate("/community")}
-                                    variant="link"
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700"
-                                >
-                                    Community
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                            <ArrowLeft className="w-5 h-5 mr-2" />
+                            Go Back
+                        </Button>
+                        <Button
+                            onClick={() => navigate("/")}
+                            className="h-14 px-8 bg-blue-600 border-2 border-blue-600 hover:border-blue-700 text-white hover:bg-blue-700 font-bold text-lg rounded-none uppercase tracking-wide transition-all shadow-lg hover:shadow-xl"
+                        >
+                            <Home className="w-5 h-5 mr-2" />
+                            Homepage
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Image Section */}
+                <div className="w-full lg:w-[55%] h-[50vh] lg:h-screen flex items-end justify-center lg:justify-end relative pointer-events-none">
+                    <img
+                        src="https://pngimg.com/uploads/chuck_norris/chuck_norris_PNG14.png"
+                        alt="Chuck Norris"
+                        className="h-full w-full object-contain object-bottom filter drop-shadow-2xl scale-125 origin-bottom relative -right-10 lg:right-0"
+                    />
+                    {/* Gradient Fade at bottom to blend if needed on smaller screens, optional */}
+                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent lg:hidden"></div>
+                </div>
+            </div>
         </div>
     );
 }

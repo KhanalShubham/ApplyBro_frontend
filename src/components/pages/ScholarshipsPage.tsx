@@ -33,12 +33,17 @@ import { Scholarship } from "@/types/scholarship";
 import { Loader } from "../ui/loader";
 import { getImageUrl } from "@/shared/lib/imageUtils";
 
+import { useSearchParams } from "react-router-dom";
+
 export function ScholarshipsPage() {
+  const [searchParams] = useSearchParams();
+  const initialCountry = searchParams.get("country") || "all";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = useState<"all" | "bookmarked" | "recommended">("all");
   const [filterExpanded, setFilterExpanded] = useState(true);
-  const [selectedCountry, setSelectedCountry] = useState("all");
+  const [selectedCountry, setSelectedCountry] = useState(initialCountry);
   const [selectedDegree, setSelectedDegree] = useState("all");
   const [selectedField, setSelectedField] = useState("all");
   const [gpaRange, setGpaRange] = useState([2.5]);
@@ -114,12 +119,13 @@ export function ScholarshipsPage() {
     // Normalize fields if needed
     id: s._id,
     name: s.title || s.name || "Untitled",
-    countryFlag: getCountryFlag(s.country),
-    degree: s.level || s.degree,
+    countryFlag: s.countryFlag || getCountryFlag(s.country),
+    degree: Array.isArray(s.level) ? s.level.join(', ') : (s.level || s.degree),
     daysLeft: getDaysLeft(s.deadline),
     gpaRequired: s.gpaRequired || 0, // Default to 0 if missing
     amount: s.amount || "See Details", // Default
     imageUrl: s.imageUrl || "", // Preserve imageUrl from backend
+    field: Array.isArray(s.fields) ? s.fields.join(', ') : (s.field || ""),
   })).filter((scholarship) => {
     // Backend handles search, country, degree, field largely, but we can double check or handle bookmarks here
     const matchesGPA = scholarship.gpaRequired <= 4.0; // Placeholder logic, adjust if gpaRange is effectively used

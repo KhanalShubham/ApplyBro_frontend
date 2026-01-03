@@ -2,7 +2,8 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import applyBroLandingImage from "@/assets/applybrolanding.png";
+import applyBroLandingImage from "@/assets/applyborlanding.jpg";
+import logo from "@/assets/logo.png";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, GraduationCap } from "lucide-react";
 import { useState } from "react";
@@ -168,11 +169,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
           {/* Logo and Title */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/30"
-              >
-                <GraduationCap className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-              </div>
+              <img src={logo} alt="ApplyBro Logo" className="h-16 w-auto" />
               <div>
                 <span className="text-2xl font-bold block" style={{ color: "#007BFF" }}>
                   ApplyBro

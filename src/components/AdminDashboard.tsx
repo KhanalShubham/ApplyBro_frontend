@@ -36,6 +36,7 @@ import {
   Edit,
   Trash2,
   Plus,
+  ArrowRightLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UserManagementPage } from "./admin/UserManagementPage";
@@ -47,7 +48,9 @@ import { AdminAnalyticsPage } from "./admin/AdminAnalyticsPage";
 import { AdminDashboardHome } from "./admin/AdminDashboardHome";
 import { GuidanceManagementPage } from "./admin/GuidanceManagementPage";
 import { AdminCalendarManagementPage } from "./admin/AdminCalendarManagementPage";
+import { CreditTransferManagementPage } from "./admin/CreditTransferManagementPage";
 import { ConfirmDialog } from "./ConfirmDialog";
+import logo from "@/assets/logo.png";
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -73,6 +76,7 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
     { id: "posts", icon: MessageSquare, label: "Post Moderation" },
     { id: "reports", icon: AlertCircle, label: "Reports Management" },
     { id: "scholarships", icon: GraduationCap, label: "Scholarship Management" },
+    { id: "credit-transfer", icon: ArrowRightLeft, label: "Credit Transfer" },
     { id: "guidance", icon: GraduationCap, label: "Guidance" },
     { id: "calendar", icon: Clock, label: "Calendar Events" },
     { id: "analytics", icon: BarChart3, label: "Analytics" },
@@ -91,17 +95,11 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#007BFF" }}
-            >
-              <Shield className="h-6 w-6 text-white" />
-            </div>
+            <img src={logo} alt="ApplyBro Admin Logo" className="h-10 w-auto" />
             <div className="hidden sm:block">
-              <span className="text-xl block" style={{ color: "#007BFF" }}>
+              <span className="text-xl font-bold block" style={{ color: "#007BFF" }}>
                 ApplyBro Admin
               </span>
-              <span className="text-xs text-gray-500 -mt-1 block">Admin Panel</span>
             </div>
           </div>
 
@@ -296,6 +294,17 @@ export function AdminDashboard({ onLogout, userName = "Admin" }: AdminDashboardP
                 transition={{ duration: 0.2 }}
               >
                 <ScholarshipManagementPage />
+              </motion.div>
+            )}
+            {activeSection === "credit-transfer" && (
+              <motion.div
+                key="credit-transfer"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CreditTransferManagementPage />
               </motion.div>
             )}
             {activeSection === "guidance" && (

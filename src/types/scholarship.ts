@@ -3,9 +3,10 @@ export interface Scholarship {
     title: string;
     name?: string; // Handle potential inconsistent naming
     country: string;
-    level: string;
-    degree?: string; // Handle potential inconsistent naming
+    level: string | string[];
+    degree?: string | string[]; // Handle potential inconsistent naming
     field?: string;
+    fields?: string[];
     deadline?: string;
     status: "open" | "closed" | "upcoming";
     description?: string;

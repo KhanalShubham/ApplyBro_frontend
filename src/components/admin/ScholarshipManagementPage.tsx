@@ -82,8 +82,8 @@ export function ScholarshipManagementPage() {
         pagination.page,
         pagination.pageSize,
         searchQuery,
-        filterStatus === "all" ? undefined : filterStatus,
-        true // adminOnly
+        filterStatus === "all" ? undefined : filterStatus
+        // adminOnly removed to show all scholarships including seeded ones
       );
       if (response.data && (response.data as any).data) {
         const result = (response.data as any).data;
@@ -129,7 +129,7 @@ export function ScholarshipManagementPage() {
       const payload = {
         title: formData.title,
         country: formData.country || formData.university.location.country, // Fallback or sync
-        level: formData.level,
+        level: typeof formData.level === 'string' ? formData.level.split(',').map(l => l.trim()) : formData.level,
         deadline: formData.deadline,
         status: formData.status,
         description: formData.description,
@@ -164,7 +164,7 @@ export function ScholarshipManagementPage() {
     setFormData({
       title: scholarship.title || scholarship.name,
       country: scholarship.country,
-      level: scholarship.level || scholarship.degree,
+      level: Array.isArray(scholarship.level) ? scholarship.level.join(', ') : (scholarship.level || scholarship.degree || ""),
       deadline: scholarship.deadline ? new Date(scholarship.deadline).toISOString().split('T')[0] : "",
       status: scholarship.status,
       description: scholarship.description,
@@ -418,22 +418,14 @@ export function ScholarshipManagementPage() {
                 */}
                 <div>
                   <Label htmlFor="level">Degree Level *</Label>
-                  <Select
+                  <Input
+                    id="level"
                     value={formData.level}
-                    onValueChange={(value: string) =>
-                      setFormData({ ...formData, level: value })
+                    onChange={(e) =>
+                      setFormData({ ...formData, level: e.target.value })
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="+2">+2</SelectItem>
-                      <SelectItem value="Bachelor">Bachelor</SelectItem>
-                      <SelectItem value="Master">Master</SelectItem>
-                      <SelectItem value="PhD">PhD</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="e.g. Bachelor, Master (comma separated)"
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -605,7 +597,9 @@ export function ScholarshipManagementPage() {
                         {scholarship.country}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{scholarship.level || scholarship.degree}</Badge>
+                        <Badge variant="outline">
+                          {Array.isArray(scholarship.level) ? scholarship.level.join(', ') : (scholarship.level || scholarship.degree)}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {scholarship.deadline ? new Date(scholarship.deadline).toLocaleDateString() : 'N/A'}
