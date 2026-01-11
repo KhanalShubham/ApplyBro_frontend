@@ -1,17 +1,16 @@
-import { Input } from "./ui/input";
+import BearInput from "./bear/BearInput";
+import BearAvatar from "./bear/BearAvatar";
+import { useBearImages } from "../hooks/useBearImages";
+import { useBearAnimation } from "../hooks/useBearAnimation";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import applyBroLandingImage from "@/assets/applyborlanding.jpg";
-import logo from "@/assets/logo.png";
+import { PremiumBackground } from "./PremiumBackground";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, GraduationCap } from "lucide-react";
-import { useState } from "react";
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, User, Globe } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
-
 import { axiosClient } from "@/shared/lib/axiosClient";
-import { User, UserRole } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { getRandomMessage } from "@/shared/lib/funkyMessages";
 
@@ -37,6 +36,35 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Bear Animation Logic
+  const { watchBearImages, hideBearImages, peakBearImages } = useBearImages();
+
+  // Determine which password show state to track based on focus
+  const activeShowPassword = focusedField === 'confirmPassword' ? showConfirmPassword : showPassword;
+
+  const {
+    currentBearImage,
+    setCurrentFocus,
+    currentFocus,
+    isAnimating,
+  } = useBearAnimation({
+    watchBearImages,
+    hideBearImages,
+    peakBearImages,
+    emailLength: formData.email.length,
+    showPassword: activeShowPassword,
+  });
+
+  const handleFieldFocus = (field: string) => {
+    setFocusedField(field);
+    if (field === 'password' || field === 'confirmPassword') {
+      setCurrentFocus('PASSWORD');
+    } else {
+      setCurrentFocus('EMAIL');
+    }
+  };
 
   const countries = [
     "Nepal", "India", "United States", "United Kingdom", "Canada", "Australia",
@@ -72,7 +100,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
     return { strength, label, color };
   };
 
-  const passwordStrength = getPasswordStrength(formData.password);
+  const passwordStrength = useMemo(() => getPasswordStrength(formData.password), [formData.password]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -132,8 +160,6 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
         const response = await axiosClient.post("/auth/signup", payload);
 
         // Success - navigate to login with message
-        // We assume 2xx response means success if axios doesn't throw.
-        // If the backend returns specific status fields check them:
         if (response.data.status === "success" || response.data.token || response.data.data?.accessToken) {
           navigate("/login", { state: { message: "Account created successfully! Please log in." } });
           return;
@@ -154,58 +180,74 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
   };
 
   const handleLoginNavigation = () => {
-    if (onLoginClick) {
-      onLoginClick();
-      return;
-    }
     navigate("/login");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
-        {/* Left Section - Registration Form */}
-        <div className="bg-card rounded-2xl shadow-lg p-8 w-full max-w-md mx-auto lg:mx-0">
-          {/* Logo and Title */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <img src={logo} alt="ApplyBro Logo" className="h-16 w-auto" />
-              <div>
-                <span className="text-2xl font-bold block" style={{ color: "#007BFF" }}>
-                  ApplyBro
-                </span>
-                <span className="text-xs text-muted-foreground -mt-1 block">Empowering Students</span>
+    <PremiumBackground>
+      <div
+        className="mx-auto p-8 relative"
+        style={{
+          width: '100%',
+          maxWidth: '700px',
+          borderRadius: '32px',
+          background: 'rgba(255, 255, 255, 0.65)', // Semi-opaque milk glass
+          backdropFilter: 'blur(20px) saturate(180%)', // Strong blur
+          border: '1px solid rgba(255, 255, 255, 0.4)', // Subtle border
+          boxShadow: `
+              0 20px 50px rgba(0, 0, 0, 0.15), 
+              0 10px 20px rgba(0, 0, 0, 0.1),
+              inset 0 0 30px rgba(255, 255, 255, 0.5) 
+            ` // Layered shadows for depth + inner shine
+        }}
+      >
+        {/* Top gloss reflection */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-80" />
+
+        <div className="p-8 md:p-10 relative z-20">
+
+          {/* Bear Avatar Section */}
+          <div className="flex justify-center mb-6">
+            <div className="relative group">
+              {/* Avatar Glow */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-300 to-green-200 rounded-full blur-xl opacity-60 group-hover:opacity-80 transition-opacity" />
+
+              <div className="relative z-10 bg-gradient-to-b from-white/90 to-white/50 p-1 rounded-full shadow-lg border border-white/60">
+                <div className="relative w-[110px] h-[110px] rounded-full overflow-hidden bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+                  {currentBearImage && (
+                    <BearAvatar
+                      currentImage={currentBearImage}
+                      key={currentFocus}
+                      size={90}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-            <h1 className="text-3xl font-bold mb-2 text-foreground">Register</h1>
-            <p className="text-muted-foreground text-sm">
-              Sign in here and log in to access feature of ApplyBro.
-            </p>
           </div>
 
+          <h1 className="text-center mb-1 text-3xl font-extrabold text-gray-800 tracking-tight drop-shadow-sm">Register</h1>
+          <p className="text-center text-sm font-semibold text-blue-600/80 uppercase tracking-wider mb-8">Create your account ✨</p>
+
           {Object.keys(errors).length > 0 && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-red-800 mb-1">Please fix the following errors:</p>
-                  <ul className="text-sm text-red-700 space-y-1">
-                    {Object.values(errors).map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
-                </div>
+            <div className="mb-6 p-4 rounded-xl bg-red-50/90 border border-red-200/60 flex items-start gap-3 shadow-sm backdrop-blur-sm">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-red-800 mb-1">Please fix the following errors:</p>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {Object.values(errors).map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
             {/* Full Name */}
-            <div>
-              <Label htmlFor="fullName" className="text-sm font-semibold text-muted-foreground mb-2 block">
-                Full name
-              </Label>
-              <Input
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Full name</Label>
+              <BearInput
                 id="fullName"
                 type="text"
                 placeholder="Enter your full name"
@@ -216,46 +258,45 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                     setErrors({ ...errors, fullName: "" });
                   }
                 }}
-                className={`h-12 ${errors.fullName ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                onFocus={() => handleFieldFocus('fullName')}
+                className="pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(4px)'
+                }}
                 disabled={isLoading}
               />
-              {errors.fullName && (
-                <p className="text-sm text-red-600 mt-1">{errors.fullName}</p>
-              )}
             </div>
 
             {/* Email */}
-            <div>
-              <Label htmlFor="email" className="text-sm font-semibold text-muted-foreground mb-2 block">
-                Email address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData({ ...formData, email: e.target.value });
-                    if (errors.email) {
-                      setErrors({ ...errors, email: "" });
-                    }
-                  }}
-                  className={`h-12 pl-10 ${errors.email ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
-                  disabled={isLoading}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-sm text-red-600 mt-1">{errors.email}</p>
-              )}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Email address</Label>
+              <BearInput
+                id="email"
+                type="email"
+                placeholder="Enter your email address"
+                value={formData.email}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) {
+                    setErrors({ ...errors, email: "" });
+                  }
+                }}
+                onFocus={() => handleFieldFocus('email')}
+                className="pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(4px)'
+                }}
+                disabled={isLoading}
+              />
             </div>
 
             {/* Country */}
-            <div>
-              <Label htmlFor="country" className="text-sm font-semibold text-muted-foreground mb-2 block">
-                Select your country
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="country" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Select your country</Label>
               <Select
                 value={formData.country}
                 onValueChange={(value: string) => {
@@ -268,11 +309,16 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               >
                 <SelectTrigger
                   id="country"
-                  className={`h-12 ${errors.country ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  className={`pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.country ? "border-red-500" : ""}`}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(4px)'
+                  }}
                 >
                   <SelectValue placeholder="Select your country" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white/80 backdrop-blur-md rounded-xl border-gray-200">
                   {countries.map((country) => (
                     <SelectItem key={country} value={country}>
                       {country}
@@ -280,22 +326,16 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.country && (
-                <p className="text-sm text-red-600 mt-1">{errors.country}</p>
-              )}
             </div>
 
             {/* Password */}
-            <div>
-              <Label htmlFor="password" className="text-sm font-semibold text-muted-foreground mb-2 block">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Password</Label>
+              <div className="relative group">
+                <BearInput
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={formData.password}
                   onChange={(e) => {
                     setFormData({ ...formData, password: e.target.value });
@@ -303,62 +343,54 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                       setErrors({ ...errors, password: "" });
                     }
                   }}
-                  className={`h-12 pl-10 pr-24 ${errors.password ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  onFocus={() => handleFieldFocus('password')}
+                  className={`pl-4 pr-12 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.password ? "border-red-500" : ""}`}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(4px)'
+                  }}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground flex items-center gap-1 text-sm"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-md hover:bg-white/50"
+                  tabIndex={-1}
                 >
-                  {showPassword ? (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      <span>Hide</span>
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      <span>Show</span>
-                    </>
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-600 mt-1">{errors.password}</p>
-              )}
               {formData.password && (
-                <div className="mt-2">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Password strength:</span>
-                    <span className="font-semibold" style={{ color: passwordStrength.color }}>
+                <div className="mt-3 w-full relative bg-gray-50/50 border border-gray-200 p-3 rounded-xl transition-all animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center justify-between text-xs mb-1.5 px-1">
+                    <span className="text-gray-500 font-medium">Password strength</span>
+                    <span className="font-bold transition-colors duration-300" style={{ color: passwordStrength.color }}>
                       {passwordStrength.label}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-gray-200/50">
                     <div
-                      className="h-1.5 rounded-full transition-all duration-300"
+                      className="h-full rounded-full transition-all duration-500 ease-out"
                       style={{
                         width: `${passwordStrength.strength}%`,
                         backgroundColor: passwordStrength.color,
+                        boxShadow: `0 0 10px ${passwordStrength.color}40`
                       }}
                     />
                   </div>
+                  <p className="text-[10px] text-gray-400 mt-2 px-1 leading-tight">
+                    Start with letters, add numbers & symbols to make it strong.
+                  </p>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground mt-2">
-                Use 8 or more characters with a mix of letters, numbers & symbols.
-              </p>
             </div>
 
             {/* Confirm Password */}
-            <div>
-              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-muted-foreground mb-2 block">
-                Confirm Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Confirm Password</Label>
+              <div className="relative group">
+                <BearInput
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
@@ -369,89 +401,93 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                       setErrors({ ...errors, confirmPassword: "" });
                     }
                   }}
-                  className={`h-12 pl-10 pr-24 ${errors.confirmPassword ? "border-red-500" : "border-input"} focus:border-blue-500 focus:ring-2 focus:ring-blue-200`}
+                  onFocus={() => handleFieldFocus('confirmPassword')}
+                  className={`pl-4 pr-12 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.confirmPassword ? "border-red-500" : ""}`}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(4px)'
+                  }}
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground flex items-center gap-1 text-sm"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-md hover:bg-white/50"
+                  tabIndex={-1}
                 >
-                  {showConfirmPassword ? (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      <span>Hide</span>
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      <span>Show</span>
-                    </>
-                  )}
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>
-              )}
             </div>
 
+            {/* Empty column (placeholder) if needed, otherwise confirm password takes one slot */}
+            <div className="hidden md:block"></div>
+
             {/* Terms Agreement */}
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onCheckedChange={(checked: boolean) => {
-                  setFormData({ ...formData, agreeToTerms: checked });
-                  if (errors.agreeToTerms) {
-                    setErrors({ ...errors, agreeToTerms: "" });
-                  }
-                }}
-                disabled={isLoading}
-                className={`mt-1 ${errors.agreeToTerms ? "border-red-500" : ""}`}
-              />
-              <label
-                htmlFor="agreeToTerms"
-                className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
-              >
-                Agree to our{" "}
-                <a href="#" className="text-blue-600 hover:underline font-semibold">
-                  Terms of use
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-blue-600 hover:underline font-semibold">
-                  Privacy Policy
-                </a>
-                .
-              </label>
+            <div className="col-span-1 md:col-span-2 pt-2">
+              <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/40 transition-colors border border-transparent hover:border-white/40">
+                <Checkbox
+                  id="terms"
+                  checked={formData.agreeToTerms}
+                  onCheckedChange={(checked: boolean) => {
+                    setFormData({ ...formData, agreeToTerms: checked });
+                    if (errors.agreeToTerms) {
+                      setErrors({ ...errors, agreeToTerms: "" });
+                    }
+                  }}
+                  className="mt-1 border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 rounded-lg w-5 h-5 shadow-sm"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="terms"
+                    className="text-sm font-medium leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700 cursor-pointer"
+                  >
+                    I agree to the <span className="text-blue-600 font-bold hover:underline">Terms of use</span> and <span className="text-blue-600 font-bold hover:underline">Privacy Policy</span>
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    We'll send you relevant scholarship opportunities and updates.
+                  </p>
+                </div>
+              </div>
             </div>
             {errors.agreeToTerms && (
-              <p className="text-sm text-red-600 -mt-3 ml-7">{errors.agreeToTerms}</p>
+              <div className="col-span-1 md:col-span-2">
+                <p className="text-sm text-red-600 -mt-2 ml-8">{errors.agreeToTerms}</p>
+              </div>
             )}
 
             {/* Register Button */}
-            <Button
-              type="submit"
-              className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
-              style={{ backgroundColor: "#007BFF" }}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                "Register"
-              )}
-            </Button>
+            <div className="col-span-1 md:col-span-2 pt-2">
+              <Button
+                type="submit"
+                className="w-full h-14 rounded-2xl text-lg font-bold text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 relative overflow-hidden group border border-blue-500/20"
+                style={{
+                  background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)',
+                }}
+                disabled={isLoading}
+              >
+                <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-700 -skew-x-12" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-gray-600 mt-6 font-medium">
             Already have an account?{" "}
             <a
               href="#"
-              className="text-blue-600 hover:underline font-semibold"
+              className="text-blue-600 hover:text-blue-700 font-bold hover:underline transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 handleLoginNavigation();
@@ -461,38 +497,14 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
             </a>
           </p>
         </div>
-
-        {/* Right Section - Illustration */}
-        <div className="hidden lg:flex flex-col justify-center items-center">
-          <div className="relative">
-            <img
-              src={applyBroLandingImage}
-              alt="Students celebrating"
-              className="rounded-2xl shadow-2xl w-full max-w-lg"
-            />
-            <div className="absolute -bottom-4 -right-4 bg-card p-4 rounded-xl shadow-lg border-2 border-blue-100 dark:border-blue-900/50">
-              <p className="text-sm">
-                <span className="text-blue-600 dark:text-blue-400 font-semibold">🚀 5,000+</span> new students joined this year
-              </p>
-            </div>
-          </div>
-          <div className="mt-8 text-center max-w-md">
-            <h2 className="text-2xl font-semibold mb-3 text-blue-600 dark:text-blue-400">
-              Start your scholarship journey today
-            </h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Discover programs worldwide, upload documents once, and manage every requirement from one calm place.
-            </p>
-          </div>
-        </div>
       </div>
-    </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-0 right-0 text-center">
+        <p className="text-sm text-gray-500/80">
+          © 2025 ApplyBro | Made with ❤️ for Students
+        </p>
+      </footer>
+    </PremiumBackground>
   );
 }
-
-
-
-
-
-
-
