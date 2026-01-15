@@ -243,7 +243,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
             {/* Full Name */}
             <div className="space-y-2">
               <Label htmlFor="fullName" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Full name</Label>
@@ -259,7 +259,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   }
                 }}
                 onFocus={() => handleFieldFocus('fullName')}
-                className="pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+                className="pl-4 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md"
                 style={{
                   background: 'rgba(255, 255, 255, 0.6)',
                   border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -284,7 +284,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   }
                 }}
                 onFocus={() => handleFieldFocus('email')}
-                className="pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+                className="pl-4 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md"
                 style={{
                   background: 'rgba(255, 255, 255, 0.6)',
                   border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -296,7 +296,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
 
             {/* Country */}
             <div className="space-y-2">
-              <Label htmlFor="country" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Select your country</Label>
+              <Label htmlFor="country" className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Country</Label>
               <Select
                 value={formData.country}
                 onValueChange={(value: string) => {
@@ -309,7 +309,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               >
                 <SelectTrigger
                   id="country"
-                  className={`pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.country ? "border-red-500" : ""}`}
+                  className={`pl-4 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.country ? "border-red-500" : ""}`}
                   style={{
                     background: 'rgba(255, 255, 255, 0.6)',
                     border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -344,7 +344,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                     }
                   }}
                   onFocus={() => handleFieldFocus('password')}
-                  className={`pl-4 pr-12 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.password ? "border-red-500" : ""}`}
+                  className={`pl-4 pr-12 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.password ? "border-red-500" : ""}`}
                   style={{
                     background: 'rgba(255, 255, 255, 0.6)',
                     border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -361,29 +361,6 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {formData.password && (
-                <div className="mt-3 w-full relative bg-gray-50/50 border border-gray-200 p-3 rounded-xl transition-all animate-in fade-in slide-in-from-top-2">
-                  <div className="flex items-center justify-between text-xs mb-1.5 px-1">
-                    <span className="text-gray-500 font-medium">Password strength</span>
-                    <span className="font-bold transition-colors duration-300" style={{ color: passwordStrength.color }}>
-                      {passwordStrength.label}
-                    </span>
-                  </div>
-                  <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-gray-200/50">
-                    <div
-                      className="h-full rounded-full transition-all duration-500 ease-out"
-                      style={{
-                        width: `${passwordStrength.strength}%`,
-                        backgroundColor: passwordStrength.color,
-                        boxShadow: `0 0 10px ${passwordStrength.color}40`
-                      }}
-                    />
-                  </div>
-                  <p className="text-[10px] text-gray-400 mt-2 px-1 leading-tight">
-                    Start with letters, add numbers & symbols to make it strong.
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Confirm Password */}
@@ -402,7 +379,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                     }
                   }}
                   onFocus={() => handleFieldFocus('confirmPassword')}
-                  className={`pl-4 pr-12 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.confirmPassword ? "border-red-500" : ""}`}
+                  className={`pl-4 pr-12 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md ${errors.confirmPassword ? "border-red-500" : ""}`}
                   style={{
                     background: 'rgba(255, 255, 255, 0.6)',
                     border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -421,12 +398,34 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
               </div>
             </div>
 
-            {/* Empty column (placeholder) if needed, otherwise confirm password takes one slot */}
-            <div className="hidden md:block"></div>
+            {/* Password Strength */}
+            {formData.password && (
+              <div className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-xl transition-all animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center justify-between text-xs mb-1.5 px-1">
+                  <span className="text-gray-500 font-medium">Password strength</span>
+                  <span className="font-bold transition-colors duration-300" style={{ color: passwordStrength.color }}>
+                    {passwordStrength.label}
+                  </span>
+                </div>
+                <div className="w-full bg-white rounded-full h-2 overflow-hidden border border-gray-200/50">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width: `${passwordStrength.strength}%`,
+                      backgroundColor: passwordStrength.color,
+                      boxShadow: `0 0 10px ${passwordStrength.color}40`
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2 px-1 leading-tight">
+                  Use letters, numbers & symbols for a strong password.
+                </p>
+              </div>
+            )}
 
             {/* Terms Agreement */}
-            <div className="col-span-1 md:col-span-2 pt-2">
-              <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/40 transition-colors border border-transparent hover:border-white/40">
+            <div className="pt-2">
+              <div className="flex items-start gap-3 p-4 rounded-xl hover:bg-white/40 transition-colors border border-transparent hover:border-white/40">
                 <Checkbox
                   id="terms"
                   checked={formData.agreeToTerms}
@@ -450,18 +449,16 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
                   </p>
                 </div>
               </div>
+              {errors.agreeToTerms && (
+                <p className="text-sm text-red-600 mt-1 ml-4">{errors.agreeToTerms}</p>
+              )}
             </div>
-            {errors.agreeToTerms && (
-              <div className="col-span-1 md:col-span-2">
-                <p className="text-sm text-red-600 -mt-2 ml-8">{errors.agreeToTerms}</p>
-              </div>
-            )}
 
             {/* Register Button */}
-            <div className="col-span-1 md:col-span-2 pt-2">
+            <div className="pt-2">
               <Button
                 type="submit"
-                className="w-full h-14 rounded-2xl text-lg font-bold text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 relative overflow-hidden group border border-blue-500/20"
+                className="w-full h-12 rounded-2xl text-lg font-bold text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 relative overflow-hidden group border border-blue-500/20"
                 style={{
                   background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)',
                 }}
@@ -502,7 +499,7 @@ export function SignupPage({ onSignupSuccess, onLoginClick }: SignupPageProps) {
       {/* Footer */}
       <footer className="absolute bottom-4 left-0 right-0 text-center">
         <p className="text-sm text-gray-500/80">
-          © 2025 ApplyBro | Made with ❤️ for Students
+          © 2025 ApplyBro | Made with for Students
         </p>
       </footer>
     </PremiumBackground>

@@ -71,13 +71,12 @@ export function LoginPage() {
         className="mx-auto p-8 md:p-10 relative"
         style={{
           width: '100%',
-          maxWidth: '480px',
+          maxWidth: '700px',
           borderRadius: '32px',
           background: "rgba(255,255,255,0.65)",
           backdropFilter: "blur(20px) saturate(180%)",
           border: "1px solid rgba(255,255,255,0.4)",
-          boxShadow:
-            "0 25px 60px rgba(0,0,0,0.15), inset 0 0 30px rgba(255,255,255,0.5)",
+          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1), inset 0 0 30px rgba(255, 255, 255, 0.5)",
         }}
       >
         {/* Top gloss reflection */}
@@ -118,12 +117,12 @@ export function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           {/* EMAIL */}
           <div className="space-y-2">
             <Label className="text-gray-700 text-xs font-bold uppercase tracking-wide ml-1">Email Address</Label>
             <BearInput
-              className="pl-4 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+              className="pl-4 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md"
               style={{
                 background: 'rgba(255, 255, 255, 0.6)',
                 border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -142,7 +141,7 @@ export function LoginPage() {
             <div className="relative group">
               <BearInput
                 type={showPassword ? "text" : "password"}
-                className="pl-4 pr-12 h-14 rounded-2xl transition-all shadow-sm focus:shadow-md"
+                className="pl-4 pr-12 h-12 rounded-2xl transition-all shadow-sm focus:shadow-md"
                 style={{
                   background: 'rgba(255, 255, 255, 0.6)',
                   border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -181,7 +180,7 @@ export function LoginPage() {
           {/* BUTTON */}
           <Button
             disabled={isLoading}
-            className="w-full h-14 rounded-2xl text-lg font-bold text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 relative overflow-hidden group mt-4 border border-blue-500/20"
+            className="w-full h-12 rounded-2xl text-lg font-bold text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 relative overflow-hidden group mt-4 border border-blue-500/20"
             style={{
               background: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)',
             }}
@@ -262,7 +261,7 @@ export function LoginPage() {
         {/* Footer */}
         <footer className="absolute bottom-4 left-0 right-0 text-center">
           <p className="text-sm text-gray-500/80">
-            © 2025 ApplyBro | Made with ❤️ for Students
+            © 2025 ApplyBro | Made with for Students
           </p>
         </footer>
       </div>

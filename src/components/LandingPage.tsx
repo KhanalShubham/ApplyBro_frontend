@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import applyBroLandingImage from "@/assets/applyborlanding.jpg";
-import applyBroLandingImage2 from "@/assets/applyborlanding2.jpg";
-import applyBroLandingImage3 from "@/assets/applyborlanding3.jpg";
-import logo from "@/assets/logo.png";
+import heroImage1 from "@/assets/applyborlanding.jpg";
+import heroImage2 from "@/assets/applyborlanding2.jpg";
+import heroImage3 from "@/assets/applyborlanding3.jpg";
 import {
   GraduationCap,
   Upload,
   Sparkles,
-  Globe,
   ChevronRight,
   Facebook,
   Instagram,
@@ -21,7 +19,6 @@ import {
   Calendar,
   DollarSign,
   ArrowRight,
-  CheckCircle2,
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { scholarshipService } from "@/services/scholarshipService";
@@ -32,24 +29,22 @@ interface LandingPageProps {
   onLoginClick?: () => void;
 }
 
+const HERO_IMAGES = [heroImage1, heroImage2, heroImage3];
+
 export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = {}) {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoadingScholarships, setIsLoadingScholarships] = useState(true);
-
-  // Hero Image Rotation Logic
-  const heroImages = [applyBroLandingImage, applyBroLandingImage2, applyBroLandingImage3];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
 
+  // Rotate Hero Images
   useEffect(() => {
-    if (isHovered) return;
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [isHovered]);
+  }, []);
 
   // Fetch real scholarships from API
   useEffect(() => {
@@ -106,8 +101,10 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
           <nav className="flex items-center justify-between h-16">
             {/* Left: Logo */}
             <div className="flex items-center gap-2">
-              <img src={logo} alt="ApplyBro Logo" className="h-10 w-auto" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">ApplyBro</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-semibold text-gray-900 dark:text-white">ApplyBro</span>
             </div>
 
             {/* Center: Navigation */}
@@ -119,13 +116,6 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                 Scholarships
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
               </a>
-              <button
-                onClick={handleLoginNavigation}
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
-              >
-                Credit Transfer
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
-              </button>
               <a
                 href="#guidance"
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
@@ -138,7 +128,7 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors relative group"
               >
                 About
-                <span className="absolute bottom-0 left-0 w-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
               </a>
             </div>
 
@@ -206,45 +196,24 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
               </div>
             </motion.div>
 
-            {/* Right Column: Image */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
-            >
-              <div
-                className="relative rounded-2xl overflow-hidden shadow-xl group max-w-lg mx-auto lg:ml-auto"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                {/* Spacer Image to maintain layout stability based on first image aspect ratio */}
-                <img
-                  src={heroImages[0]}
-                  alt="Spacer"
-                  className="w-full h-auto opacity-0 invisible"
+            {/* Right Column: Rotating Image */}
+            <div className="relative h-[400px] md:h-[500px] w-full max-w-lg mx-auto lg:max-w-none rounded-2xl overflow-hidden shadow-2xl bg-gray-100 dark:bg-gray-800">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentImageIndex}
+                  src={HERO_IMAGES[currentImageIndex]}
+                  alt="Students studying abroad"
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
-
-                {/* Sliding Carousel Track */}
-                {/* Fade Carousel */}
-                <div className="absolute inset-0 w-full h-full">
-                  {heroImages.map((img, index) => (
-                    <div
-                      key={index}
-                      className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentImageIndex === index ? "opacity-100 z-10" : "opacity-0 z-0"
-                        }`}
-                    >
-                      <img
-                        src={img}
-                        alt={`Student success ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-blue-500/5 pointer-events-none"></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+              </AnimatePresence>
+              
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+            </div>
           </div>
         </div>
       </section>
@@ -469,8 +438,10 @@ export function LandingPage({ onSignUpClick, onLoginClick }: LandingPageProps = 
             {/* LEFT COLUMN - Brand & Trust */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src={logo} alt="ApplyBro Logo" className="h-12 w-auto" />
-                <span className="text-xl font-bold text-gray-900 dark:text-white">ApplyBro</span>
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                  <GraduationCap className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">ApplyBro</span>
               </div>
 
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
